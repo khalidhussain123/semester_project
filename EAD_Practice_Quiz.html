@@ -1,0 +1,2079 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>EAD Practice Quiz — SWE-452</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#0a0e1a;
+  --surface:#111827;
+  --card:#1a2235;
+  --border:#2a3550;
+  --accent:#38bdf8;
+  --accent2:#818cf8;
+  --green:#22c55e;
+  --red:#f87171;
+  --yellow:#fbbf24;
+  --text:#e2e8f0;
+  --muted:#94a3b8;
+  --mono:'JetBrains Mono',monospace;
+  --sans:'Syne',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh}
+/* NAV */
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100}
+.topbar h1{font-size:1.1rem;font-weight:800;color:var(--accent);letter-spacing:.5px}
+.topbar .badge{background:var(--accent2);color:#fff;font-size:.7rem;padding:3px 8px;border-radius:20px;font-weight:600}
+.score-bar{margin-left:auto;display:flex;align-items:center;gap:12px;font-size:.85rem}
+.score-val{font-weight:700;color:var(--green);font-size:1rem}
+/* SIDEBAR */
+.layout{display:flex;min-height:calc(100vh - 53px)}
+.sidebar{width:220px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);padding:16px 0;position:sticky;top:53px;height:calc(100vh - 53px);overflow-y:auto}
+.sidebar h3{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:0 16px 8px}
+.sidebar-btn{display:block;width:100%;text-align:left;padding:9px 16px;border:none;background:none;color:var(--muted);font-family:var(--sans);font-size:.82rem;cursor:pointer;border-left:3px solid transparent;transition:all .2s}
+.sidebar-btn:hover{color:var(--text);background:rgba(56,189,248,.06)}
+.sidebar-btn.active{color:var(--accent);border-left-color:var(--accent);background:rgba(56,189,248,.08)}
+.sidebar-btn .count{float:right;font-size:.7rem;color:var(--muted)}
+/* MAIN */
+.main{flex:1;padding:28px;max-width:860px}
+/* SECTION */
+.section{display:none}
+.section.visible{display:block}
+.section-title{font-size:1.5rem;font-weight:800;margin-bottom:6px}
+.section-sub{color:var(--muted);font-size:.88rem;margin-bottom:24px;line-height:1.6}
+/* CONCEPT BOX */
+.concept-box{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 22px;margin-bottom:28px}
+.concept-box h4{font-size:.8rem;text-transform:uppercase;letter-spacing:1px;color:var(--accent2);margin-bottom:10px}
+.concept-box ul{list-style:none;padding:0}
+.concept-box ul li{padding:5px 0;font-size:.85rem;color:var(--text);line-height:1.6;border-bottom:1px solid var(--border)}
+.concept-box ul li:last-child{border-bottom:none}
+.concept-box ul li::before{content:"► ";color:var(--accent);font-size:.75rem}
+.trap{color:var(--yellow)}
+/* QUESTION CARD */
+.q-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:22px;margin-bottom:18px;transition:border-color .3s}
+.q-card.correct-card{border-color:var(--green)}
+.q-card.wrong-card{border-color:var(--red)}
+.q-header{display:flex;gap:10px;align-items:flex-start;margin-bottom:14px}
+.q-num{background:var(--accent);color:#000;font-weight:700;font-size:.75rem;padding:3px 8px;border-radius:6px;white-space:nowrap;flex-shrink:0}
+.q-trap{background:var(--yellow);color:#000;font-size:.7rem;padding:2px 7px;border-radius:6px;flex-shrink:0}
+.q-text{font-size:.95rem;font-weight:600;line-height:1.5}
+/* MCQ OPTIONS */
+.options{display:flex;flex-direction:column;gap:8px}
+.opt-btn{padding:10px 16px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:var(--sans);font-size:.88rem;cursor:pointer;text-align:left;transition:all .2s;line-height:1.4}
+.opt-btn:hover:not(:disabled){border-color:var(--accent);background:rgba(56,189,248,.07)}
+.opt-btn.selected-correct{background:rgba(34,197,94,.12);border-color:var(--green);color:var(--green)}
+.opt-btn.selected-wrong{background:rgba(248,113,113,.12);border-color:var(--red);color:var(--red)}
+.opt-btn.reveal-correct{background:rgba(34,197,94,.08);border-color:var(--green)}
+.opt-btn:disabled{cursor:default;opacity:.75}
+/* EXPLANATION */
+.explanation{margin-top:14px;padding:12px 16px;border-radius:8px;background:rgba(129,140,248,.08);border:1px solid rgba(129,140,248,.25);font-size:.84rem;color:var(--muted);line-height:1.6;display:none}
+.explanation.show{display:block}
+.explanation strong{color:var(--accent2)}
+/* DRAG-DROP QUESTION */
+.dragdrop-q{margin-bottom:28px}
+.dd-title{font-size:.95rem;font-weight:600;margin-bottom:6px;line-height:1.5}
+.dd-desc{font-size:.83rem;color:var(--muted);margin-bottom:14px}
+.dd-code{background:#0d1117;border:1px solid var(--border);border-radius:8px;padding:14px 18px;font-family:var(--mono);font-size:.8rem;line-height:1.8;margin-bottom:14px;white-space:pre-wrap;overflow-x:auto}
+.dd-blank{display:inline-block;min-width:100px;height:26px;border-bottom:2px dashed var(--accent);background:rgba(56,189,248,.07);border-radius:4px;vertical-align:middle;text-align:center;padding:0 6px;font-family:var(--mono);font-size:.78rem;cursor:pointer;transition:all .2s;line-height:26px}
+.dd-blank.filled{border-bottom-style:solid;color:var(--accent);font-weight:600}
+.dd-blank.correct-blank{background:rgba(34,197,94,.15);border-color:var(--green);color:var(--green)}
+.dd-blank.wrong-blank{background:rgba(248,113,113,.15);border-color:var(--red);color:var(--red)}
+.dd-blank.dragover{background:rgba(56,189,248,.2);border-color:var(--accent)}
+.tokens-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.token{display:inline-block;padding:5px 12px;border-radius:6px;background:var(--surface);border:1px solid var(--border);font-family:var(--mono);font-size:.78rem;cursor:grab;color:var(--text);user-select:none;transition:all .2s}
+.token:active{cursor:grabbing;transform:scale(1.06);box-shadow:0 4px 12px rgba(56,189,248,.3)}
+.token.used{opacity:.3;cursor:default}
+.token.dragging{opacity:.5}
+/* MATCH QUESTION */
+.match-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.match-term{font-family:var(--mono);font-size:.82rem;color:var(--accent);background:rgba(56,189,248,.08);padding:6px 12px;border-radius:6px;min-width:140px;flex-shrink:0}
+.match-select{flex:1;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:var(--sans);font-size:.82rem;cursor:pointer;appearance:auto}
+.match-select.correct-sel{border-color:var(--green);background:rgba(34,197,94,.1)}
+.match-select.wrong-sel{border-color:var(--red);background:rgba(248,113,113,.1)}
+/* FILL BLANK */
+.fill-input{padding:7px 12px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:var(--mono);font-size:.88rem;width:220px;outline:none;transition:border-color .2s}
+.fill-input:focus{border-color:var(--accent)}
+.fill-input.correct-in{border-color:var(--green);color:var(--green)}
+.fill-input.wrong-in{border-color:var(--red);color:var(--red)}
+/* BUTTONS */
+.btn{padding:9px 20px;border-radius:8px;border:none;font-family:var(--sans);font-size:.85rem;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-check{background:var(--accent);color:#000}
+.btn-check:hover{background:#7dd3fc}
+.btn-reset{background:var(--surface);color:var(--muted);border:1px solid var(--border);margin-left:8px}
+.btn-reset:hover{color:var(--text);border-color:var(--accent)}
+.btn-row{margin-top:16px;display:flex;gap:8px;flex-wrap:wrap}
+/* PROGRESS */
+.progress-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.prog-dot{width:10px;height:10px;border-radius:50%;background:var(--border);transition:background .3s}
+.prog-dot.done-correct{background:var(--green)}
+.prog-dot.done-wrong{background:var(--red)}
+/* RESULT */
+.result-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:8px;font-size:.85rem;margin-top:12px}
+.result-badge.correct{background:rgba(34,197,94,.12);color:var(--green);border:1px solid var(--green)}
+.result-badge.wrong{background:rgba(248,113,113,.12);color:var(--red);border:1px solid var(--red)}
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+/* RESPONSIVE */
+@media(max-width:700px){
+  .sidebar{display:none}
+  .main{padding:16px}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>EAD Practice Quiz</h1>
+  <span class="badge">SWE-452</span>
+  <div class="score-bar">
+    Score: <span class="score-val" id="globalScore">0 / 0</span>
+  </div>
+</div>
+
+<div class="layout">
+<nav class="sidebar">
+  <h3>Topics</h3>
+  <button class="sidebar-btn active" onclick="showSection('react')">⚛️ React Fundamentals <span class="count">9</span></button>
+  <button class="sidebar-btn" onclick="showSection('hooks')">🪝 Hooks &amp; Effects <span class="count">8</span></button>
+  <button class="sidebar-btn" onclick="showSection('router')">🗺️ React Router <span class="count">5</span></button>
+  <button class="sidebar-btn" onclick="showSection('redux')">🏪 Redux &amp; Reducers <span class="count">5</span></button>
+  <button class="sidebar-btn" onclick="showSection('nodejs')">🟢 Node.js <span class="count">6</span></button>
+  <button class="sidebar-btn" onclick="showSection('express')">🚀 Express.js <span class="count">6</span></button>
+  <button class="sidebar-btn" onclick="showSection('mongodb')">🍃 MongoDB &amp; Mongoose <span class="count">6</span></button>
+  <button class="sidebar-btn" onclick="showSection('promises')">⏳ Promises &amp; Async <span class="count">6</span></button>
+  <button class="sidebar-btn" onclick="showSection('forms')">📝 React Forms <span class="count">5</span></button>
+  <button class="sidebar-btn" onclick="showSection('mixed')">🎯 Mixed Challenge <span class="count">8</span></button>
+</nav>
+
+<main class="main">
+
+<!-- ══════════════ REACT FUNDAMENTALS ══════════════ -->
+<div class="section visible" id="section-react">
+  <div class="section-title">⚛️ React Fundamentals</div>
+  <div class="section-sub">JSX, Components, Props, State, Virtual DOM — the building blocks of React.</div>
+
+  <div class="concept-box">
+    <h4>📘 Key Concepts</h4>
+    <ul>
+      <li>React is a JavaScript <strong>Library</strong> (NOT a framework) — handles only the View layer.</li>
+      <li>JSX = JavaScript XML — HTML-like syntax compiled by Babel into <code>React.createElement()</code> calls.</li>
+      <li>Component names <strong>MUST</strong> start with a Capital Letter — lowercase = HTML tag.</li>
+      <li>React DOM uses <strong>camelCase</strong>: <code>onClick</code>, <code>className</code>, <code>onChange</code>.</li>
+      <li>The smallest building blocks are <strong>Elements</strong> (not components). Elements are immutable.</li>
+      <li><span class="trap">⚠ TRAP:</span> <code>useState</code> uses <strong>Array destructuring</strong> — NOT object destructuring.</li>
+      <li>Data flows <strong>top-down</strong> (parent → child only). Props are <strong>read-only</strong>.</li>
+      <li>The Virtual DOM is an in-memory copy of the real DOM — React syncs changes efficiently.</li>
+    </ul>
+  </div>
+
+  <!-- Q1 MCQ -->
+  <div class="q-card" id="react-q1">
+    <div class="q-header">
+      <span class="q-num">Q1</span>
+      <span class="q-trap">⚠ TRAP</span>
+      <span class="q-text">React is a JavaScript ___ for building user interfaces.</span>
+    </div>
+    <div class="options">
+      <button class="opt-btn" onclick="checkMCQ('react-q1',this,'wrong')">A. Framework</button>
+      <button class="opt-btn" onclick="checkMCQ('react-q1',this,'correct')">B. Library</button>
+      <button class="opt-btn" onclick="checkMCQ('react-q1',this,'wrong')">C. Database</button>
+      <button class="opt-btn" onclick="checkMCQ('react-q1',this,'wrong')">D. Compiler</button>
+    </div>
+    <div class="explanation" id="react-q1-exp">
+      <strong>✅ Library</strong> — React is a UI library, not a framework. A framework (like Angular) provides the whole structure; React only handles the <em>view</em> layer. This is a classic exam trap!
+    </div>
+  </div>
+
+  <!-- Q2 MCQ -->
+  <div class="q-card" id="react-q2">
+    <div class="q-header">
+      <span class="q-num">Q2</span>
+      <span class="q-trap">⚠ TRAP</span>
+      <span class="q-text">Which activity do we perform while declaring useState?</span>
+    </div>
+    <div class="options">
+      <button class="opt-btn" onclick="checkMCQ('react-q2',this,'wrong')">A. Object destructuring</button>
+      <button class="opt-btn" onclick="checkMCQ('react-q2',this,'wrong')">B. Unpacking object</button>
+      <button class="opt-btn" onclick="checkMCQ('react-q2',this,'correct')">C. Array destructuring</button>
+      <button class="opt-btn" onclick="checkMCQ('react-q2',this,'wrong')">D. Unpacking array</button>
+    </div>
+    <div class="explanation" id="react-q2-exp">
+      <strong>✅ Array destructuring</strong> — <code>const [count, setCount] = useState(0)</code> uses array destructuring (square brackets). useState returns an <em>array</em> of [value, setter], not an object.
+    </div>
+  </div>
+
+  <!-- Q3 MCQ -->
+  <div class="q-card" id="react-q3">
+    <div class="q-header">
+      <span class="q-num">Q3</span>
+      <span class="q-text">JSX stands for?</span>
+    </div>
+    <div class="options">
+      <button class="opt-btn" onclick="checkMCQ('react-q3',this,'wrong')">A. JavaScript Extension</button>
+      <button class="opt-btn" onclick="checkMCQ('react-q3',this,'wrong')">B. JavaScript Extreme</button>
+      <button class="opt-btn" onclick="checkMCQ('react-q3',this,'correct')">C. JavaScript XML</button>
+      <button class="opt-btn" onclick="checkMCQ('react-q3',this,'wrong')">D. JavaScript XScript</button>
+    </div>
+    <div class="explanation" id="react-q3-exp">
+      <strong>✅ JavaScript XML</strong> — JSX is HTML-like syntax inside JavaScript. Babel compiles it into <code>React.createElement()</code> calls. Without Babel, browsers can't read JSX directly.
+    </div>
+  </div>
+
+  <!-- Q4 MCQ -->
+  <div class="q-card" id="react-q4">
+    <div class="q-header">
+      <span class="q-num">Q4</span>
+      <span class="q-trap">⚠ TRAP</span>
+      <span class="q-text">React DOM uses ___ case property naming convention?</span>
+    </div>
+    <div class="options">
+      <button class="opt-btn" onclick="checkMCQ('react-q4',this,'correct')">A. Camel Case</button>
+      <button class="opt-btn" onclick="checkMCQ('react-q4',this,'wrong')">B. Pascal Case</button>
+      <button class="opt-btn" onclick="checkMCQ('react-q4',this,'wrong')">C. Snake Case</button>
+      <button class="opt-btn" onclick="checkMCQ('react-q4',this,'wrong')">D. Kebab Case</button>
+    </div>
+    <div class="explanation" id="react-q4-exp">
+      <strong>✅ Camel Case</strong> — React DOM uses camelCase for all attributes: <code>onClick</code> (not onclick), <code>className</code> (not class), <code>onChange</code>, <code>htmlFor</code>. This is different from plain HTML.
+    </div>
+  </div>
+
+  <!-- Q5 MCQ -->
+  <div class="q-card" id="react-q5">
+    <div class="q-header">
+      <span class="q-num">Q5</span>
+      <span class="q-trap">⚠ TRAP</span>
+      <span class="q-text">Which are the smallest building blocks of React apps?</span>
+    </div>
+    <div class="options">
+      <button class="opt-btn" onclick="checkMCQ('react-q5',this,'wrong')">A. Components</button>
+      <button class="opt-btn" onclick="checkMCQ('react-q5',this,'wrong')">B. Tags</button>
+      <button class="opt-btn" onclick="checkMCQ('react-q5',this,'correct')">C. Elements</button>
+      <button class="opt-btn" onclick="checkMCQ('react-q5',this,'wrong')">D. JSX</button>
+    </div>
+    <div class="explanation" id="react-q5-exp">
+      <strong>✅ Elements</strong> — React <em>Elements</em> are the smallest building blocks (e.g., <code>const el = &lt;h1&gt;Hello&lt;/h1&gt;</code>). Components are made of elements. Elements are immutable — you can't change them after creation.
+    </div>
+  </div>
+
+  <!-- Q6 DRAG-DROP: complete Counter component -->
+  <div class="q-card dragdrop-q" id="react-q6">
+    <div class="q-header">
+      <span class="q-num">Q6</span>
+      <span class="q-text">Topic: Hooks — Complete the Counter component using useState. Drag the correct pieces.</span>
+    </div>
+    <div class="dd-code">import React, { <span class="dd-blank" id="dd-react-q6-0" data-answer="useState" ondragover="ddOver(event)" ondrop="ddDrop(event,'react-q6',0)" onclick="ddClick(this,'react-q6',0)">　　　　</span> } from 'react';
+
+function Counter() {
+  const [count, setCount] = <span class="dd-blank" id="dd-react-q6-1" data-answer="useState" ondragover="ddOver(event)" ondrop="ddDrop(event,'react-q6',1)" onclick="ddClick(this,'react-q6',1)">　　　　</span>(0);
+  return (
+    &lt;div&gt;
+      &lt;p&gt;Count: {count}&lt;/p&gt;
+      &lt;button onClick={() =&gt; setCount(count <span class="dd-blank" id="dd-react-q6-2" data-answer="+" ondragover="ddOver(event)" ondrop="ddDrop(event,'react-q6',2)" onclick="ddClick(this,'react-q6',2)">　</span> 1)}&gt;+1&lt;/button&gt;
+    &lt;/div&gt;
+  );
+}</div>
+    <div class="tokens-row" id="tokens-react-q6">
+      <div class="token" draggable="true" ondragstart="ddStart(event,'useState')" onclick="ddTokenClick(this,'react-q6','useState')">useState</div>
+      <div class="token" draggable="true" ondragstart="ddStart(event,'useEffect')" onclick="ddTokenClick(this,'react-q6','useEffect')">useEffect</div>
+      <div class="token" draggable="true" ondragstart="ddStart(event,'setState')" onclick="ddTokenClick(this,'react-q6','setState')">setState</div>
+      <div class="token" draggable="true" ondragstart="ddStart(event,'+')" onclick="ddTokenClick(this,'react-q6','+')">+</div>
+      <div class="token" draggable="true" ondragstart="ddStart(event,'-')" onclick="ddTokenClick(this,'react-q6','-')">-</div>
+      <div class="token" draggable="true" ondragstart="ddStart(event,'*')" onclick="ddTokenClick(this,'react-q6','*')">*</div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-check" onclick="checkDD('react-q6',3)">Check Answers</button>
+      <button class="btn btn-reset" onclick="resetDD('react-q6',3,['useState','useState','+'])">Reset</button>
+    </div>
+    <div class="explanation" id="react-q6-exp">
+      <strong>✅ useState, useState, +</strong> — You import <code>useState</code> from React, then use it to declare <code>[count, setCount]</code>. The click handler adds 1 with <code>count + 1</code>. useState returns [currentValue, setter] via <em>array destructuring</em>.
+    </div>
+  </div>
+
+  <!-- Q7 MCQ -->
+  <div class="q-card" id="react-q7">
+    <div class="q-header">
+      <span class="q-num">Q7</span>
+      <span class="q-text">What does the Virtual DOM do in React?</span>
+    </div>
+    <div class="options">
+      <button class="opt-btn" onclick="checkMCQ('react-q7',this,'wrong')">A. Directly manipulates the browser DOM on every state change</button>
+      <button class="opt-btn" onclick="checkMCQ('react-q7',this,'correct')">B. Keeps an in-memory copy to compute minimal DOM changes efficiently</button>
+      <button class="opt-btn" onclick="checkMCQ('react-q7',this,'wrong')">C. Replaces the DOM entirely</button>
+      <button class="opt-btn" onclick="checkMCQ('react-q7',this,'wrong')">D. Is a database for component state</button>
+    </div>
+    <div class="explanation" id="react-q7-exp">
+      <strong>✅ In-memory copy for minimal updates</strong> — The Virtual DOM is a lightweight JavaScript object tree. When state changes, React computes a diff between old and new Virtual DOM (reconciliation) and applies only the minimal real DOM changes — this is what makes React fast.
+    </div>
+  </div>
+
+  <!-- Q8 MATCH: component types -->
+  <div class="q-card" id="react-q8">
+    <div class="q-header">
+      <span class="q-num">Q8</span>
+      <span class="q-text">Match each React concept with its description.</span>
+    </div>
+    <div id="match-react-q8">
+      <div class="match-row">
+        <span class="match-term">className</span>
+        <select class="match-select" data-answer="Replaces HTML 'class' attribute in JSX">
+          <option value="">Choose…</option>
+          <option>Replaces HTML 'class' attribute in JSX</option>
+          <option>Compiles JSX to createElement</option>
+          <option>Passes data from child to parent</option>
+          <option>Renders multiple sibling elements</option>
+        </select>
+      </div>
+      <div class="match-row">
+        <span class="match-term">Babel</span>
+        <select class="match-select" data-answer="Compiles JSX to createElement">
+          <option value="">Choose…</option>
+          <option>Replaces HTML 'class' attribute in JSX</option>
+          <option>Compiles JSX to createElement</option>
+          <option>Passes data from child to parent</option>
+          <option>Renders multiple sibling elements</option>
+        </select>
+      </div>
+      <div class="match-row">
+        <span class="match-term">&lt;&gt;…&lt;/&gt;</span>
+        <select class="match-select" data-answer="Renders multiple sibling elements">
+          <option value="">Choose…</option>
+          <option>Replaces HTML 'class' attribute in JSX</option>
+          <option>Compiles JSX to createElement</option>
+          <option>Passes data from child to parent</option>
+          <option>Renders multiple sibling elements</option>
+        </select>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-check" onclick="checkMatch('react-q8')">Check</button>
+      <button class="btn btn-reset" onclick="resetMatch('react-q8')">Reset</button>
+    </div>
+    <div class="explanation" id="react-q8-exp">
+      <strong>className</strong> → Replaces HTML 'class' (class is a reserved JS keyword). <strong>Babel</strong> → Compiles JSX to React.createElement(). <strong>&lt;&gt;</strong> → Fragment — wraps siblings without adding extra DOM elements.
+    </div>
+  </div>
+
+  <!-- Q9 FILL -->
+  <div class="q-card" id="react-q9">
+    <div class="q-header">
+      <span class="q-num">Q9</span>
+      <span class="q-text">Which compiler/transpiler converts JSX into React.createElement() calls?</span>
+    </div>
+    <input class="fill-input" id="fill-react-q9" placeholder="Type answer…" onkeydown="if(event.key==='Enter')checkFill('react-q9','babel')"/>
+    <div class="btn-row">
+      <button class="btn btn-check" onclick="checkFill('react-q9','babel')">Check</button>
+      <button class="btn btn-reset" onclick="resetFill('react-q9')">Reset</button>
+    </div>
+    <div class="explanation" id="react-q9-exp">
+      <strong>✅ Babel</strong> — Babel is a JavaScript compiler. It transforms modern JS and JSX syntax into browser-compatible JavaScript. When you write <code>&lt;div&gt;Hello&lt;/div&gt;</code>, Babel converts it to <code>React.createElement('div', null, 'Hello')</code>.
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════ HOOKS & EFFECTS ══════════════ -->
+<div class="section" id="section-hooks">
+  <div class="section-title">🪝 Hooks &amp; Effects</div>
+  <div class="section-sub">useState, useEffect, useRef, useContext — React's built-in Hooks system.</div>
+
+  <div class="concept-box">
+    <h4>📘 Key Concepts</h4>
+    <ul>
+      <li><strong>useEffect with []</strong> runs ONCE after initial render (like componentDidMount).</li>
+      <li><strong>useEffect with [dep]</strong> runs on initial render AND whenever dep changes.</li>
+      <li><strong>useEffect with no array</strong> runs after EVERY render.</li>
+      <li><span class="trap">⚠ TRAP:</span> An effect ALWAYS runs on the <strong>initial render</strong> — regardless of the dependency array.</li>
+      <li><strong>useRef</strong> returns <code>{ current: initialValue }</code> — does NOT trigger re-render.</li>
+      <li>Hooks CANNOT be called inside <code>if</code>, loops, or nested functions — only at the top level.</li>
+      <li><strong>Rules of Hooks:</strong> Only call at top level. Only call from React functions.</li>
+      <li><span class="trap">⚠ TRAP:</span> You CANNOT mark useEffect callback as async — use an inner async function.</li>
+    </ul>
+  </div>
+
+  <!-- Q1 MCQ -->
+  <div class="q-card" id="hooks-q1">
+    <div class="q-header">
+      <span class="q-num">Q1</span>
+      <span class="q-trap">⚠ TRAP</span>
+      <span class="q-text">An effect ALWAYS runs on the ___?</span>
+    </div>
+    <div class="options">
+      <button class="opt-btn" onclick="checkMCQ('hooks-q1',this,'wrong')">A. Only when deps change</button>
+      <button class="opt-btn" onclick="checkMCQ('hooks-q1',this,'wrong')">B. Only on unmount</button>
+      <button class="opt-btn" onclick="checkMCQ('hooks-q1',this,'correct')">C. Initial render, regardless of dependency array</button>
+      <button class="opt-btn" onclick="checkMCQ('hooks-q1',this,'wrong')">D. Only when [] is provided</button>
+    </div>
+    <div class="explanation" id="hooks-q1-exp">
+      <strong>✅ Initial render, always</strong> — Every useEffect runs at least once (on mount). The dependency array only controls <em>subsequent</em> runs. So <code>useEffect(fn, [])</code> still runs once on first render.
+    </div>
+  </div>
+
+  <!-- Q2 MCQ -->
+  <div class="q-card" id="hooks-q2">
+    <div class="q-header">
+      <span class="q-num">Q2</span>
+      <span class="q-trap">⚠ TRAP</span>
+      <span class="q-text">What does useRef return?</span>
+    </div>
+    <div class="options">
+      <button class="opt-btn" onclick="checkMCQ('hooks-q2',this,'wrong')">A. [value, setter]</button>
+      <button class="opt-btn" onclick="checkMCQ('hooks-q2',this,'correct')">B. { current: initialValue }</button>
+      <button class="opt-btn" onclick="checkMCQ('hooks-q2',this,'wrong')">C. undefined</button>
+      <button class="opt-btn" onclick="checkMCQ('hooks-q2',this,'wrong')">D. A boolean</button>
+    </div>
+    <div class="explanation" id="hooks-q2-exp">
+      <strong>✅ {current: initialValue}</strong> — useRef returns a mutable ref object with a <code>.current</code> property. Unlike useState, changing <code>ref.current</code> does NOT trigger a re-render. Used for DOM access or persisting values between renders.
+    </div>
+  </div>
+
+  <!-- Q3 DRAG-DROP: useEffect with fetch -->
+  <div class="q-card dragdrop-q" id="hooks-q3">
+    <div class="q-header">
+      <span class="q-num">Q3</span>
+      <span class="q-text">Scenario: Load user data from API once when the component mounts. Drag the correct tokens.</span>
+    </div>
+    <div class="dd-code">useEffect(() => {
+  fetch('/api/user').then(r => r.json()).then(setUser);
+}, <span class="dd-blank" id="dd-hooks-q3-0" data-answer="[]" ondragover="ddOver(event)" ondrop="ddDrop(event,'hooks-q3',0)" onclick="ddClick(this,'hooks-q3',0)">　　</span>);</div>
+    <div class="tokens-row" id="tokens-hooks-q3">
+      <div class="token" draggable="true" ondragstart="ddStart(event,'[]')" onclick="ddTokenClick(this,'hooks-q3','[]')">[]</div>
+      <div class="token" draggable="true" ondragstart="ddStart(event,'[id]')" onclick="ddTokenClick(this,'hooks-q3','[id]')">[id]</div>
+      <div class="token" draggable="true" ondragstart="ddStart(event,'null')" onclick="ddTokenClick(this,'hooks-q3','null')">null</div>
+      <div class="token" draggable="true" ondragstart="ddStart(event,'undefined')" onclick="ddTokenClick(this,'hooks-q3','undefined')">undefined</div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-check" onclick="checkDD('hooks-q3',1)">Check</button>
+      <button class="btn btn-reset" onclick="resetDD('hooks-q3',1,['[]'])">Reset</button>
+    </div>
+    <div class="explanation" id="hooks-q3-exp">
+      <strong>✅ []</strong> — An empty dependency array <code>[]</code> means "run this effect only once, on mount". Without any array, the effect would re-run on every render. With <code>[id]</code> it would re-run whenever id changes.
+    </div>
+  </div>
+
+  <!-- Q4 MATCH: useEffect behaviors -->
+  <div class="q-card" id="hooks-q4">
+    <div class="q-header">
+      <span class="q-num">Q4</span>
+      <span class="q-text">Topic: Hooks &amp; side effects — Match the useEffect dependency array with its behavior.</span>
+    </div>
+    <div id="match-hooks-q4">
+      <div class="match-row">
+        <span class="match-term">useEffect(fn, [])</span>
+        <select class="match-select" data-answer="Runs once after initial render">
+          <option value="">Choose…</option>
+          <option>Runs once after initial render</option>
+          <option>Runs after every render</option>
+          <option>Runs when id changes</option>
+        </select>
+      </div>
+      <div class="match-row">
+        <span class="match-term">useEffect(fn, [id])</span>
+        <select class="match-select" data-answer="Runs when id changes">
+          <option value="">Choose…</option>
+          <option>Runs once after initial render</option>
+          <option>Runs after every render</option>
+          <option>Runs when id changes</option>
+        </select>
+      </div>
+      <div class="match-row">
+        <span class="match-term">useEffect(fn)</span>
+        <select class="match-select" data-answer="Runs after every render">
+          <option value="">Choose…</option>
+          <option>Runs once after initial render</option>
+          <option>Runs after every render</option>
+          <option>Runs when id changes</option>
+        </select>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-check" onclick="checkMatch('hooks-q4')">Check</button>
+      <button class="btn btn-reset" onclick="resetMatch('hooks-q4')">Reset</button>
+    </div>
+    <div class="explanation" id="hooks-q4-exp">
+      <strong>[]</strong> → Once (like componentDidMount). <strong>[id]</strong> → Initial + whenever id changes (like componentDidUpdate for id). <strong>No array</strong> → After every render (like componentDidUpdate always).
+    </div>
+  </div>
+
+  <!-- Q5 MCQ -->
+  <div class="q-card" id="hooks-q5">
+    <div class="q-header">
+      <span class="q-num">Q5</span>
+      <span class="q-text">Which React Hook is used to add state to a function component?</span>
+    </div>
+    <div class="options">
+      <button class="opt-btn" onclick="checkMCQ('hooks-q5',this,'correct')">A. useState</button>
+      <button class="opt-btn" onclick="checkMCQ('hooks-q5',this,'wrong')">B. useEffect</button>
+      <button class="opt-btn" onclick="checkMCQ('hooks-q5',this,'wrong')">C. useRef</button>
+      <button class="opt-btn" onclick="checkMCQ('hooks-q5',this,'wrong')">D. useReducer</button>
+    </div>
+    <div class="explanation" id="hooks-q5-exp">
+      <strong>✅ useState</strong> — useState is the hook that adds local state to a functional component. It returns [currentValue, setterFunction]. Calling the setter triggers a re-render with the new value.
+    </div>
+  </div>
+
+  <!-- Q6 MATCH: Hooks purpose -->
+  <div class="q-card" id="hooks-q6">
+    <div class="q-header">
+      <span class="q-num">Q6</span>
+      <span class="q-text">Topic: Hooks — Match each Hook with its primary purpose.</span>
+    </div>
+    <div id="match-hooks-q6">
+      <div class="match-row">
+        <span class="match-term">Rules of Hooks</span>
+        <select class="match-select" data-answer="Only call at top level, only in React functions">
+          <option value="">Choose…</option>
+          <option>Only call at top level, only in React functions</option>
+          <option>Run side effects after render</option>
+          <option>Add local state to a function component</option>
+        </select>
+      </div>
+      <div class="match-row">
+        <span class="match-term">useEffect</span>
+        <select class="match-select" data-answer="Run side effects after render">
+          <option value="">Choose…</option>
+          <option>Only call at top level, only in React functions</option>
+          <option>Run side effects after render</option>
+          <option>Add local state to a function component</option>
+        </select>
+      </div>
+      <div class="match-row">
+        <span class="match-term">useState</span>
+        <select class="match-select" data-answer="Add local state to a function component">
+          <option value="">Choose…</option>
+          <option>Only call at top level, only in React functions</option>
+          <option>Run side effects after render</option>
+          <option>Add local state to a function component</option>
+        </select>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-check" onclick="checkMatch('hooks-q6')">Check</button>
+      <button class="btn btn-reset" onclick="resetMatch('hooks-q6')">Reset</button>
+    </div>
+    <div class="explanation" id="hooks-q6-exp">
+      <strong>Rules of Hooks</strong>: Must call at top level (not inside ifs/loops) and only from React functions. <strong>useEffect</strong>: Side effects (data fetching, timers, subscriptions). <strong>useState</strong>: Local reactive state.
+    </div>
+  </div>
+
+  <!-- Q7 Scenario: Toggle -->
+  <div class="q-card dragdrop-q" id="hooks-q7">
+    <div class="q-header">
+      <span class="q-num">Q7</span>
+      <span class="q-text">Scenario: A button shows/hides a paragraph. Complete using useState to hold a boolean.</span>
+    </div>
+    <div class="dd-code">function Toggle() {
+  const [visible, setVisible] = <span class="dd-blank" id="dd-hooks-q7-0" data-answer="useState" ondragover="ddOver(event)" ondrop="ddDrop(event,'hooks-q7',0)" onclick="ddClick(this,'hooks-q7',0)">　　　　</span>(<span class="dd-blank" id="dd-hooks-q7-1" data-answer="false" ondragover="ddOver(event)" ondrop="ddDrop(event,'hooks-q7',1)" onclick="ddClick(this,'hooks-q7',1)">　　　</span>);
+  return (
+    &lt;&gt;
+      &lt;button onClick={() => setVisible(v => <span class="dd-blank" id="dd-hooks-q7-2" data-answer="!" ondragover="ddOver(event)" ondrop="ddDrop(event,'hooks-q7',2)" onclick="ddClick(this,'hooks-q7',2)">　</span>v)}&gt;Toggle&lt;/button&gt;
+      {visible &amp;&amp; &lt;p&gt;Now you see me&lt;/p&gt;}
+    &lt;/&gt;
+  );
+}</div>
+    <div class="tokens-row" id="tokens-hooks-q7">
+      <div class="token" draggable="true" ondragstart="ddStart(event,'useState')" onclick="ddTokenClick(this,'hooks-q7','useState')">useState</div>
+      <div class="token" draggable="true" ondragstart="ddStart(event,'useEffect')" onclick="ddTokenClick(this,'hooks-q7','useEffect')">useEffect</div>
+      <div class="token" draggable="true" ondragstart="ddStart(event,'false')" onclick="ddTokenClick(this,'hooks-q7','false')">false</div>
+      <div class="token" draggable="true" ondragstart="ddStart(event,'true')" onclick="ddTokenClick(this,'hooks-q7','true')">true</div>
+      <div class="token" draggable="true" ondragstart="ddStart(event,'null')" onclick="ddTokenClick(this,'hooks-q7','null')">null</div>
+      <div class="token" draggable="true" ondragstart="ddStart(event,'!')" onclick="ddTokenClick(this,'hooks-q7','!')">!</div>
+      <div class="token" draggable="true" ondragstart="ddStart(event,'-')" onclick="ddTokenClick(this,'hooks-q7','-')">-</div>
+      <div class="token" draggable="true" ondragstart="ddStart(event,'~')" onclick="ddTokenClick(this,'hooks-q7','~')">~</div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-check" onclick="checkDD('hooks-q7',3)">Check</button>
+      <button class="btn btn-reset" onclick="resetDD('hooks-q7',3,['useState','false','!'])">Reset</button>
+    </div>
+    <div class="explanation" id="hooks-q7-exp">
+      <strong>✅ useState, false, !</strong> — Initial state is <code>false</code> (hidden). The <code>!</code> (logical NOT) operator flips the boolean: <code>v => !v</code> toggles between true and false. This is a functional update pattern which is the safest way to update based on previous state.
+    </div>
+  </div>
+
+  <!-- Q8 React Very Hard: useEffect stale closure -->
+  <div class="q-card dragdrop-q" id="hooks-q8">
+    <div class="q-header">
+      <span class="q-num">Q8</span>
+      <span class="q-text">React (Very Hard): Complete the effect that subscribes to an event when userId changes and cancels previous subscription on cleanup. Avoid stale closures.</span>
+    </div>
+    <div class="dd-code">useEffect(() => {
+  let cancelled = false;
+  <span class="dd-blank" id="dd-hooks-q8-0" data-answer="fetchUser" ondragover="ddOver(event)" ondrop="ddDrop(event,'hooks-q8',0)" onclick="ddClick(this,'hooks-q8',0)">　　　　　</span>(userId).then(data => {
+    if (!<span class="dd-blank" id="dd-hooks-q8-1" data-answer="cancelled" ondragover="ddOver(event)" ondrop="ddDrop(event,'hooks-q8',1)" onclick="ddClick(this,'hooks-q8',1)">　　　　　</span>) setUser(data);
+  });
+  return () => {
+    <span class="dd-blank" id="dd-hooks-q8-2" data-answer="cancelled" ondragover="ddOver(event)" ondrop="ddDrop(event,'hooks-q8',2)" onclick="ddClick(this,'hooks-q8',2)">　　　　　</span> = true;
+  };
+}, [<span class="dd-blank" id="dd-hooks-q8-3" data-answer="userId" ondragover="ddOver(event)" ondrop="ddDrop(event,'hooks-q8',3)" onclick="ddClick(this,'hooks-q8',3)">　　　　</span>]);</div>
+    <div class="tokens-row" id="tokens-hooks-q8">
+      <div class="token" draggable="true" ondragstart="ddStart(event,'fetchUser')" onclick="ddTokenClick(this,'hooks-q8','fetchUser')">fetchUser</div>
+      <div class="token" draggable="true" ondragstart="ddStart(event,'loadUser')" onclick="ddTokenClick(this,'hooks-q8','loadUser')">loadUser</div>
+      <div class="token" draggable="true" ondragstart="ddStart(event,'cancelled')" onclick="ddTokenClick(this,'hooks-q8','cancelled')">cancelled</div>
+      <div class="token" draggable="true" ondragstart="ddStart(event,'aborted')" onclick="ddTokenClick(this,'hooks-q8','aborted')">aborted</div>
+      <div class="token" draggable="true" ondragstart="ddStart(event,'userId')" onclick="ddTokenClick(this,'hooks-q8','userId')">userId</div>
+      <div class="token" draggable="true" ondragstart="ddStart(event,'[id]')" onclick="ddTokenClick(this,'hooks-q8','[id]')">[id]</div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-check" onclick="checkDD('hooks-q8',4)">Check</button>
+      <button class="btn btn-reset" onclick="resetDD('hooks-q8',4,['fetchUser','cancelled','cancelled','userId'])">Reset</button>
+    </div>
+    <div class="explanation" id="hooks-q8-exp">
+      <strong>✅ fetchUser, cancelled, cancelled, userId</strong> — The <code>cancelled</code> flag prevents setting state on an unmounted/re-rendered component (stale closure fix). The cleanup function sets <code>cancelled = true</code> so any in-flight promise ignores the result. <code>[userId]</code> in the dep array means the effect re-runs when userId changes.
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════ REACT ROUTER ══════════════ -->
+<div class="section" id="section-router">
+  <div class="section-title">🗺️ React Router</div>
+  <div class="section-sub">SPA routing, nested routes, dynamic routes, navigation hooks.</div>
+
+  <div class="concept-box">
+    <h4>📘 Key Concepts</h4>
+    <ul>
+      <li>React Router v6 uses <code>&lt;Routes&gt;</code> (NOT Switch — that was v5).</li>
+      <li><span class="trap">⚠ TRAP:</span> <code>useNavigate()</code> replaces <code>useHistory()</code> from v5.</li>
+      <li><code>useParams()</code> reads dynamic URL segments like <code>:id</code>.</li>
+      <li><code>&lt;Outlet /&gt;</code> is a placeholder in parent — child routes render there.</li>
+      <li>Use <code>&lt;Link&gt;</code> not <code>&lt;a&gt;</code> — anchor tags cause full page reload.</li>
+      <li><code>&lt;NavLink&gt;</code> automatically adds an <code>active</code> class; <code>&lt;Link&gt;</code> does NOT.</li>
+      <li>404 fallback: <code>&lt;Route path="*"&gt;</code> — must be placed last in Routes.</li>
+    </ul>
+  </div>
+
+  <!-- Q1 MCQ -->
+  <div class="q-card" id="router-q1">
+    <div class="q-header">
+      <span class="q-num">Q1</span>
+      <span class="q-trap">⚠ TRAP</span>
+      <span class="q-text">Which component is used to define routes in React Router v6?</span>
+    </div>
+    <div class="options">
+      <button class="opt-btn" onclick="checkMCQ('router-q1',this,'wrong')">A. Switch</button>
+      <button class="opt-btn" onclick="checkMCQ('router-q1',this,'wrong')">B. Router</button>
+      <button class="opt-btn" onclick="checkMCQ('router-q1',this,'correct')">C. Routes</button>
+      <button class="opt-btn" onclick="checkMCQ('router-q1',this,'wrong')">D. RouteGroup</button>
+    </div>
+    <div class="explanation" id="router-q1-exp">
+      <strong>✅ Routes</strong> — In v6, <code>&lt;Routes&gt;</code> replaced <code>&lt;Switch&gt;</code>. Routes renders the FIRST matching route. Switch was v5 — a very common exam trap!
+    </div>
+  </div>
+
+  <!-- Q2 MCQ -->
+  <div class="q-card" id="router-q2">
+    <div class="q-header">
+      <span class="q-num">Q2</span>
+      <span class="q-trap">⚠ TRAP</span>
+      <span class="q-text">How do you navigate programmatically in React Router v6?</span>
+    </div>
+    <div class="options">
+      <button class="opt-btn" onclick="checkMCQ('router-q2',this,'wrong')">A. useHistory()</button>
+      <button class="opt-btn" onclick="checkMCQ('router-q2',this,'correct')">B. useNavigate()</button>
+      <button class="opt-btn" onclick="checkMCQ('router-q2',this,'wrong')">C. useRedirect()</button>
+      <button class="opt-btn" onclick="checkMCQ('router-q2',this,'wrong')">D. withRouter()</button>
+    </div>
+    <div class="explanation" id="router-q2-exp">
+      <strong>✅ useNavigate()</strong> — This replaced <code>useHistory()</code> in v6. Usage: <code>const nav = useNavigate(); nav('/dashboard');</code>. <code>nav(-1)</code> goes back like browser back. <code>useHistory</code> was v5.
+    </div>
+  </div>
+
+  <!-- Q3 MCQ -->
+  <div class="q-card" id="router-q3">
+    <div class="q-header">
+      <span class="q-num">Q3</span>
+      <span class="q-text">What is an Outlet in React Router?</span>
+    </div>
+    <div class="options">
+      <button class="opt-btn" onclick="checkMCQ('router-q3',this,'wrong')">A. A redirect component</button>
+      <button class="opt-btn" onclick="checkMCQ('router-q3',this,'correct')">B. A placeholder that renders child route components</button>
+      <button class="opt-btn" onclick="checkMCQ('router-q3',this,'wrong')">C. A link component</button>
+      <button class="opt-btn" onclick="checkMCQ('router-q3',this,'wrong')">D. The 404 route</button>
+    </div>
+    <div class="explanation" id="router-q3-exp">
+      <strong>✅ Placeholder for child routes</strong> — When you have nested routes, the parent component uses <code>&lt;Outlet /&gt;</code> to say "render the matching child route here". Like a slot in the layout.
+    </div>
+  </div>
+
+  <!-- Q4 MCQ -->
+  <div class="q-card" id="router-q4">
+    <div class="q-header">
+      <span class="q-num">Q4</span>
+      <span class="q-text">Which hook reads URL parameters from a dynamic route?</span>
+    </div>
+    <div class="options">
+      <button class="opt-btn" onclick="checkMCQ('router-q4',this,'wrong')">A. useQuery</button>
+      <button class="opt-btn" onclick="checkMCQ('router-q4',this,'wrong')">B. useRoute</button>
+      <button class="opt-btn" onclick="checkMCQ('router-q4',this,'correct')">C. useParams</button>
+      <button class="opt-btn" onclick="checkMCQ('router-q4',this,'wrong')">D. useURL</button>
+    </div>
+    <div class="explanation" id="router-q4-exp">
+      <strong>✅ useParams()</strong> — For a route like <code>/users/:id</code>, the hook <code>const { id } = useParams()</code> reads the <code>:id</code> segment from the URL. Note: useParams returns strings, so use parseInt() for numbers.
+    </div>
+  </div>
+
+  <!-- Q5 MATCH -->
+  <div class="q-card" id="router-q5">
+    <div class="q-header">
+      <span class="q-num">Q5</span>
+      <span class="q-text">Match the React Router component/hook with its purpose.</span>
+    </div>
+    <div id="match-router-q5">
+      <div class="match-row">
+        <span class="match-term">&lt;Link&gt;</span>
+        <select class="match-select" data-answer="Navigate without page reload">
+          <option value="">Choose…</option>
+          <option>Navigate without page reload</option>
+          <option>Auto adds active class on match</option>
+          <option>Read query string params</option>
+          <option>Match URL params like :id</option>
+        </select>
+      </div>
+      <div class="match-row">
+        <span class="match-term">&lt;NavLink&gt;</span>
+        <select class="match-select" data-answer="Auto adds active class on match">
+          <option value="">Choose…</option>
+          <option>Navigate without page reload</option>
+          <option>Auto adds active class on match</option>
+          <option>Read query string params</option>
+          <option>Match URL params like :id</option>
+        </select>
+      </div>
+      <div class="match-row">
+        <span class="match-term">useSearchParams</span>
+        <select class="match-select" data-answer="Read query string params">
+          <option value="">Choose…</option>
+          <option>Navigate without page reload</option>
+          <option>Auto adds active class on match</option>
+          <option>Read query string params</option>
+          <option>Match URL params like :id</option>
+        </select>
+      </div>
+      <div class="match-row">
+        <span class="match-term">useParams</span>
+        <select class="match-select" data-answer="Match URL params like :id">
+          <option value="">Choose…</option>
+          <option>Navigate without page reload</option>
+          <option>Auto adds active class on match</option>
+          <option>Read query string params</option>
+          <option>Match URL params like :id</option>
+        </select>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-check" onclick="checkMatch('router-q5')">Check</button>
+      <button class="btn btn-reset" onclick="resetMatch('router-q5')">Reset</button>
+    </div>
+    <div class="explanation" id="router-q5-exp">
+      <strong>Link</strong> → No reload. <strong>NavLink</strong> → Adds active class (useful for nav menus). <strong>useSearchParams</strong> → Query strings like <code>?page=2</code>. <strong>useParams</strong> → Dynamic segments like <code>:id</code>.
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════ REDUX ══════════════ -->
+<div class="section" id="section-redux">
+  <div class="section-title">🏪 Redux &amp; Reducers</div>
+  <div class="section-sub">useReducer, Redux Toolkit, actions, pure functions, state management.</div>
+
+  <div class="concept-box">
+    <h4>📘 Key Concepts</h4>
+    <ul>
+      <li><strong>Redux flow:</strong> UI → dispatch(action) → Reducer → new State → Store → UI re-renders.</li>
+      <li>Every action MUST have a <code>type</code> property. <code>payload</code> is optional.</li>
+      <li>Reducer must be a <strong>pure function</strong>: same input → same output, no side effects.</li>
+      <li><code>useReducer</code> returns <code>[state, dispatch]</code> — NOT [state, action].</li>
+      <li><span class="trap">⚠ TRAP:</span> Redux Toolkit (RTK) uses Immer — direct mutation IS safe inside createSlice.</li>
+      <li><code>useSelector()</code> reads from Redux store; <code>useDispatch()</code> sends actions.</li>
+      <li>Single source of truth: ONE store for the entire app.</li>
+    </ul>
+  </div>
+
+  <!-- Q1 MCQ -->
+  <div class="q-card" id="redux-q1">
+    <div class="q-header">
+      <span class="q-num">Q1</span>
+      <span class="q-trap">⚠ TRAP</span>
+      <span class="q-text">What is the correct flow of data in Redux?</span>
+    </div>
+    <div class="options">
+      <button class="opt-btn" onclick="checkMCQ('redux-q1',this,'wrong')">A. Store → Action → Reducer → UI</button>
+      <button class="opt-btn" onclick="checkMCQ('redux-q1',this,'wrong')">B. UI → Reducer → Action → Store</button>
+      <button class="opt-btn" onclick="checkMCQ('redux-q1',this,'correct')">C. Action → Dispatcher → Store → View</button>
+      <button class="opt-btn" onclick="checkMCQ('redux-q1',this,'wrong')">D. View → Store → Action</button>
+    </div>
+    <div class="explanation" id="redux-q1-exp">
+      <strong>✅ Action → Dispatcher → Store → View</strong> — The Flux/Redux pattern: UI dispatches an Action → Reducer processes it → Store updates → View re-renders. The reducer never talks directly to UI — it's always one-way data flow.
+    </div>
+  </div>
+
+  <!-- Q2 MCQ -->
+  <div class="q-card" id="redux-q2">
+    <div class="q-header">
+      <span class="q-num">Q2</span>
+      <span class="q-trap">⚠ TRAP</span>
+      <span class="q-text">What does useReducer return?</span>
+    </div>
+    <div class="options">
+      <button class="opt-btn" onclick="checkMCQ('redux-q2',this,'wrong')">A. [state, action]</button>
+      <button class="opt-btn" onclick="checkMCQ('redux-q2',this,'correct')">B. [state, dispatch]</button>
+      <button class="opt-btn" onclick="checkMCQ('redux-q2',this,'wrong')">C. { state, dispatch }</button>
+      <button class="opt-btn" onclick="checkMCQ('redux-q2',this,'wrong')">D. (state, reducer)</button>
+    </div>
+    <div class="explanation" id="redux-q2-exp">
+      <strong>✅ [state, dispatch]</strong> — Just like useState returns [value, setter], useReducer returns [state, dispatch]. You call <code>dispatch({type: 'INCREMENT'})</code> to trigger a state change through the reducer.
+    </div>
+  </div>
+
+  <!-- Q3 MCQ -->
+  <div class="q-card" id="redux-q3">
+    <div class="q-header">
+      <span class="q-num">Q3</span>
+      <span class="q-text">A reducer function must be?</span>
+    </div>
+    <div class="options">
+      <button class="opt-btn" onclick="checkMCQ('redux-q3',this,'wrong')">A. Async</button>
+      <button class="opt-btn" onclick="checkMCQ('redux-q3',this,'correct')">B. A pure function</button>
+      <button class="opt-btn" onclick="checkMCQ('redux-q3',this,'wrong')">C. An impure function</button>
+      <button class="opt-btn" onclick="checkMCQ('redux-q3',this,'wrong')">D. A class method</button>
+    </div>
+    <div class="explanation" id="redux-q3-exp">
+      <strong>✅ Pure function</strong> — A pure function: same inputs → same output, no side effects (no API calls, no random). This is required so Redux can predict state changes and enable time-travel debugging.
+    </div>
+  </div>
+
+  <!-- Q4 MCQ -->
+  <div class="q-card" id="redux-q4">
+    <div class="q-header">
+      <span class="q-num">Q4</span>
+      <span class="q-trap">⚠ TRAP</span>
+      <span class="q-text">What must every Redux action have?</span>
+    </div>
+    <div class="options">
+      <button class="opt-btn" onclick="checkMCQ('redux-q4',this,'wrong')">A. payload</button>
+      <button class="opt-btn" onclick="checkMCQ('redux-q4',this,'wrong')">B. id</button>
+      <button class="opt-btn" onclick="checkMCQ('redux-q4',this,'correct')">C. type</button>
+      <button class="opt-btn" onclick="checkMCQ('redux-q4',this,'wrong')">D. data</button>
+    </div>
+    <div class="explanation" id="redux-q4-exp">
+      <strong>✅ type</strong> — Every Redux action is a plain JS object with a required <code>type</code> property (a string like 'INCREMENT'). <code>payload</code> is optional — used to pass additional data. The reducer uses <code>action.type</code> in a switch statement.
+    </div>
+  </div>
+
+  <!-- Q5 MATCH Components Interacting -->
+  <div class="q-card dragdrop-q" id="redux-q5">
+    <div class="q-header">
+      <span class="q-num">Q5</span>
+      <span class="q-text">Topic: Components Interacting — Complete the parent component that passes a prop and a click handler to the child.</span>
+    </div>
+    <div class="dd-code">function Parent() {
+  const [value, setValue] = useState(0);
+  return (
+    &lt;Child <span class="dd-blank" id="dd-redux-q5-0" data-answer="count" ondragover="ddOver(event)" ondrop="ddDrop(event,'redux-q5',0)" onclick="ddClick(this,'redux-q5',0)">　　　</span>={value}
+           <span class="dd-blank" id="dd-redux-q5-1" data-answer="onIncrement" ondragover="ddOver(event)" ondrop="ddDrop(event,'redux-q5',1)" onclick="ddClick(this,'redux-q5',1)">　　　　　　</span>={() => setValue(v => v + 1)} /&gt;
+  );
+}</div>
+    <div class="tokens-row" id="tokens-redux-q5">
+      <div class="token" draggable="true" ondragstart="ddStart(event,'count')" onclick="ddTokenClick(this,'redux-q5','count')">count</div>
+      <div class="token" draggable="true" ondragstart="ddStart(event,'data')" onclick="ddTokenClick(this,'redux-q5','data')">data</div>
+      <div class="token" draggable="true" ondragstart="ddStart(event,'value')" onclick="ddTokenClick(this,'redux-q5','value')">value</div>
+      <div class="token" draggable="true" ondragstart="ddStart(event,'onIncrement')" onclick="ddTokenClick(this,'redux-q5','onIncrement')">onIncrement</div>
+      <div class="token" draggable="true" ondragstart="ddStart(event,'handleClick')" onclick="ddTokenClick(this,'redux-q5','handleClick')">handleClick</div>
+      <div class="token" draggable="true" ondragstart="ddStart(event,'onClick')" onclick="ddTokenClick(this,'redux-q5','onClick')">onClick</div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-check" onclick="checkDD('redux-q5',2)">Check</button>
+      <button class="btn btn-reset" onclick="resetDD('redux-q5',2,['count','onIncrement'])">Reset</button>
+    </div>
+    <div class="explanation" id="redux-q5-exp">
+      <strong>✅ count, onIncrement</strong> — The parent owns state. It passes the value as <code>count</code> prop and the setter as <code>onIncrement</code> callback. The child calls <code>onIncrement()</code> when clicked — this is "lifting state up" pattern (data flows down, events flow up).
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════ NODE.JS ══════════════ -->
+<div class="section" id="section-nodejs">
+  <div class="section-title">🟢 Node.js</div>
+  <div class="section-sub">Runtime, Event Loop, Modules, File System, npm, Nodemon.</div>
+
+  <div class="concept-box">
+    <h4>📘 Key Concepts</h4>
+    <ul>
+      <li>Node.js is a JavaScript <strong>Runtime</strong> built on Chrome's <strong>V8</strong> engine — NOT a language or framework.</li>
+      <li>Node is <strong>single-threaded</strong> but handles concurrency via the <strong>Event Loop</strong> and non-blocking I/O.</li>
+      <li>CommonJS uses <code>require()</code>. ES Modules use <code>import</code>. Cannot mix without config.</li>
+      <li><span class="trap">⚠ TRAP:</span> <code>fs.readFileSync()</code> is BLOCKING — avoid in production servers.</li>
+      <li>Built-in modules: <code>fs</code>, <code>path</code>, <code>http</code>, <code>events</code>, <code>os</code>, <code>crypto</code>.</li>
+      <li><strong>Nodemon</strong> is a DEV tool only — auto-restarts server on file changes. Never use in production.</li>
+      <li><span class="trap">⚠ TRAP:</span> <code>node_modules/</code> should NEVER be pushed to Git — add to .gitignore.</li>
+    </ul>
+  </div>
+
+  <!-- Q1 MCQ -->
+  <div class="q-card" id="nodejs-q1">
+    <div class="q-header">
+      <span class="q-num">Q1</span>
+      <span class="q-text">Node.js is built on which JavaScript engine?</span>
+    </div>
+    <div class="options">
+      <button class="opt-btn" onclick="checkMCQ('nodejs-q1',this,'wrong')">A. SpiderMonkey</button>
+      <button class="opt-btn" onclick="checkMCQ('nodejs-q1',this,'correct')">B. V8</button>
+      <button class="opt-btn" onclick="checkMCQ('nodejs-q1',this,'wrong')">C. Chakra</button>
+      <button class="opt-btn" onclick="checkMCQ('nodejs-q1',this,'wrong')">D. JavaScriptCore</button>
+    </div>
+    <div class="explanation" id="nodejs-q1-exp">
+      <strong>✅ V8</strong> — V8 is Google's high-performance JavaScript engine (used in Chrome). Node.js uses V8 to run JS outside the browser. SpiderMonkey is Mozilla's (Firefox). Chakra was Microsoft's. JavaScriptCore is Apple's (Safari).
+    </div>
+  </div>
+
+  <!-- Q2 MCQ -->
+  <div class="q-card" id="nodejs-q2">
+    <div class="q-header">
+      <span class="q-num">Q2</span>
+      <span class="q-trap">⚠ TRAP</span>
+      <span class="q-text">Node.js is single-threaded. How does it handle concurrent requests?</span>
+    </div>
+    <div class="options">
+      <button class="opt-btn" onclick="checkMCQ('nodejs-q2',this,'wrong')">A. It doesn't — only handles one request</button>
+      <button class="opt-btn" onclick="checkMCQ('nodejs-q2',this,'wrong')">B. It creates a new thread per request</button>
+      <button class="opt-btn" onclick="checkMCQ('nodejs-q2',this,'correct')">C. Via the Event Loop and non-blocking I/O</button>
+      <button class="opt-btn" onclick="checkMCQ('nodejs-q2',this,'wrong')">D. Via multiprocessing</button>
+    </div>
+    <div class="explanation" id="nodejs-q2-exp">
+      <strong>✅ Event Loop + non-blocking I/O</strong> — Node offloads I/O operations (file reads, DB queries, API calls) to the system, then continues processing. When I/O is done, the callback enters the event queue. This allows handling thousands of concurrent connections on one thread.
+    </div>
+  </div>
+
+  <!-- Q3 MCQ -->
+  <div class="q-card" id="nodejs-q3">
+    <div class="q-header">
+      <span class="q-num">Q3</span>
+      <span class="q-text">Which module handles file reading/writing in Node.js?</span>
+    </div>
+    <div class="options">
+      <button class="opt-btn" onclick="checkMCQ('nodejs-q3',this,'wrong')">A. http</button>
+      <button class="opt-btn" onclick="checkMCQ('nodejs-q3',this,'wrong')">B. path</button>
+      <button class="opt-btn" onclick="checkMCQ('nodejs-q3',this,'wrong')">C. os</button>
+      <button class="opt-btn" onclick="checkMCQ('nodejs-q3',this,'correct')">D. fs</button>
+    </div>
+    <div class="explanation" id="nodejs-q3-exp">
+      <strong>✅ fs</strong> — The <code>fs</code> (File System) module provides <code>readFile()</code>, <code>writeFile()</code>, <code>readFileSync()</code>, etc. Use async versions in production. <code>path</code> handles file paths. <code>http</code> creates servers. <code>os</code> reads system info.
+    </div>
+  </div>
+
+  <!-- Q4 MCQ -->
+  <div class="q-card" id="nodejs-q4">
+    <div class="q-header">
+      <span class="q-num">Q4</span>
+      <span class="q-text">What is the correct way to import a built-in module in CommonJS?</span>
+    </div>
+    <div class="options">
+      <button class="opt-btn" onclick="checkMCQ('nodejs-q4',this,'wrong')">A. import http from 'http'</button>
+      <button class="opt-btn" onclick="checkMCQ('nodejs-q4',this,'correct')">B. const http = require('http')</button>
+      <button class="opt-btn" onclick="checkMCQ('nodejs-q4',this,'wrong')">C. include('http')</button>
+      <button class="opt-btn" onclick="checkMCQ('nodejs-q4',this,'wrong')">D. use('http')</button>
+    </div>
+    <div class="explanation" id="nodejs-q4-exp">
+      <strong>✅ require('http')</strong> — CommonJS (the default in Node.js) uses <code>require()</code>. ES Module syntax (<code>import</code>) also works but requires <code>"type":"module"</code> in package.json or <code>.mjs</code> extension. They cannot be freely mixed.
+    </div>
+  </div>
+
+  <!-- Q5 MCQ -->
+  <div class="q-card" id="nodejs-q5">
+    <div class="q-header">
+      <span class="q-num">Q5</span>
+      <span class="q-text">What does Nodemon do?</span>
+    </div>
+    <div class="options">
+      <button class="opt-btn" onclick="checkMCQ('nodejs-q5',this,'wrong')">A. Manages Node.js versions</button>
+      <button class="opt-btn" onclick="checkMCQ('nodejs-q5',this,'wrong')">B. Handles HTTP requests</button>
+      <button class="opt-btn" onclick="checkMCQ('nodejs-q5',this,'correct')">C. Auto-restarts server on file changes</button>
+      <button class="opt-btn" onclick="checkMCQ('nodejs-q5',this,'wrong')">D. Compresses Node.js files</button>
+    </div>
+    <div class="explanation" id="nodejs-q5-exp">
+      <strong>✅ Auto-restarts on file changes</strong> — Nodemon monitors your project files and restarts the Node.js server automatically when changes are saved. Install as devDependency: <code>npm install nodemon --save-dev</code>. NEVER use in production.
+    </div>
+  </div>
+
+  <!-- Q6 MATCH -->
+  <div class="q-card" id="nodejs-q6">
+    <div class="q-header">
+      <span class="q-num">Q6</span>
+      <span class="q-text">Match each Node.js built-in module with its purpose.</span>
+    </div>
+    <div id="match-nodejs-q6">
+      <div class="match-row">
+        <span class="match-term">fs</span>
+        <select class="match-select" data-answer="File reading and writing">
+          <option value="">Choose…</option>
+          <option>File reading and writing</option>
+          <option>File path utilities</option>
+          <option>Create HTTP servers</option>
+          <option>OS information</option>
+        </select>
+      </div>
+      <div class="match-row">
+        <span class="match-term">path</span>
+        <select class="match-select" data-answer="File path utilities">
+          <option value="">Choose…</option>
+          <option>File reading and writing</option>
+          <option>File path utilities</option>
+          <option>Create HTTP servers</option>
+          <option>OS information</option>
+        </select>
+      </div>
+      <div class="match-row">
+        <span class="match-term">http</span>
+        <select class="match-select" data-answer="Create HTTP servers">
+          <option value="">Choose…</option>
+          <option>File reading and writing</option>
+          <option>File path utilities</option>
+          <option>Create HTTP servers</option>
+          <option>OS information</option>
+        </select>
+      </div>
+      <div class="match-row">
+        <span class="match-term">os</span>
+        <select class="match-select" data-answer="OS information">
+          <option value="">Choose…</option>
+          <option>File reading and writing</option>
+          <option>File path utilities</option>
+          <option>Create HTTP servers</option>
+          <option>OS information</option>
+        </select>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-check" onclick="checkMatch('nodejs-q6')">Check</button>
+      <button class="btn btn-reset" onclick="resetMatch('nodejs-q6')">Reset</button>
+    </div>
+    <div class="explanation" id="nodejs-q6-exp">
+      <strong>fs</strong> → readFile/writeFile. <strong>path</strong> → join(), basename(), extname(). <strong>http</strong> → createServer(), listen(). <strong>os</strong> → cpus(), totalmem(), platform().
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════ EXPRESS.JS ══════════════ -->
+<div class="section" id="section-express">
+  <div class="section-title">🚀 Express.js</div>
+  <div class="section-sub">Routing, Middleware, RESTful APIs, Request &amp; Response.</div>
+
+  <div class="concept-box">
+    <h4>📘 Key Concepts</h4>
+    <ul>
+      <li>Middleware = function with <code>(req, res, next)</code>. MUST call <code>next()</code> or the request hangs.</li>
+      <li><span class="trap">⚠ TRAP:</span> <code>express.json()</code> is REQUIRED to read JSON body — without it, <code>req.body</code> is undefined.</li>
+      <li>Route params → <code>req.params.id</code>. Query strings → <code>req.query.key</code>. Body → <code>req.body</code>.</li>
+      <li>HTTP status: 200=OK, 201=Created, 204=No Content, 400=Bad Request, 404=Not Found, 500=Server Error.</li>
+      <li>Error middleware MUST have exactly 4 params: <code>(err, req, res, next)</code>.</li>
+      <li>Middleware ORDER matters — <code>app.use()</code> runs in the order defined. Define error middleware LAST.</li>
+    </ul>
+  </div>
+
+  <!-- Q1 MCQ -->
+  <div class="q-card" id="express-q1">
+    <div class="q-header">
+      <span class="q-num">Q1</span>
+      <span class="q-text">What is middleware in Express.js?</span>
+    </div>
+    <div class="options">
+      <button class="opt-btn" onclick="checkMCQ('express-q1',this,'wrong')">A. A database layer</button>
+      <button class="opt-btn" onclick="checkMCQ('express-q1',this,'correct')">B. A function with (req, res, next) that processes requests</button>
+      <button class="opt-btn" onclick="checkMCQ('express-q1',this,'wrong')">C. A route definition</button>
+      <button class="opt-btn" onclick="checkMCQ('express-q1',this,'wrong')">D. A template engine</button>
+    </div>
+    <div class="explanation" id="express-q1-exp">
+      <strong>✅ (req, res, next) function</strong> — Middleware sits between the request and response. It can read/modify req and res, run code, and then either call <code>next()</code> to pass control forward, or end the response.
+    </div>
+  </div>
+
+  <!-- Q2 MCQ -->
+  <div class="q-card" id="express-q2">
+    <div class="q-header">
+      <span class="q-num">Q2</span>
+      <span class="q-trap">⚠ TRAP</span>
+      <span class="q-text">What happens if middleware does NOT call next()?</span>
+    </div>
+    <div class="options">
+      <button class="opt-btn" onclick="checkMCQ('express-q2',this,'wrong')">A. Request moves to next middleware</button>
+      <button class="opt-btn" onclick="checkMCQ('express-q2',this,'wrong')">B. An error is thrown automatically</button>
+      <button class="opt-btn" onclick="checkMCQ('express-q2',this,'correct')">C. The request-response cycle stops</button>
+      <button class="opt-btn" onclick="checkMCQ('express-q2',this,'wrong')">D. Response is sent automatically</button>
+    </div>
+    <div class="explanation" id="express-q2-exp">
+      <strong>✅ Request-response cycle stops</strong> — The client will hang forever waiting for a response that never comes. You must either call <code>next()</code> OR send a response (<code>res.send()</code>, <code>res.json()</code>) in every middleware branch.
+    </div>
+  </div>
+
+  <!-- Q3 MCQ -->
+  <div class="q-card" id="express-q3">
+    <div class="q-header">
+      <span class="q-num">Q3</span>
+      <span class="q-text">Which HTTP status code means 'Created'?</span>
+    </div>
+    <div class="options">
+      <button class="opt-btn" onclick="checkMCQ('express-q3',this,'wrong')">A. 200</button>
+      <button class="opt-btn" onclick="checkMCQ('express-q3',this,'wrong')">B. 301</button>
+      <button class="opt-btn" onclick="checkMCQ('express-q3',this,'wrong')">C. 404</button>
+      <button class="opt-btn" onclick="checkMCQ('express-q3',this,'correct')">D. 201</button>
+    </div>
+    <div class="explanation" id="express-q3-exp">
+      <strong>✅ 201 Created</strong> — Returned when a POST request successfully creates a new resource. 200=OK (GET/PUT). 204=No Content (DELETE). 404=Not Found. 500=Server Error. Remember: 2xx = success, 4xx = client error, 5xx = server error.
+    </div>
+  </div>
+
+  <!-- Q4 MCQ -->
+  <div class="q-card" id="express-q4">
+    <div class="q-header">
+      <span class="q-num">Q4</span>
+      <span class="q-trap">⚠ TRAP</span>
+      <span class="q-text">Which middleware is needed to read JSON request body?</span>
+    </div>
+    <div class="options">
+      <button class="opt-btn" onclick="checkMCQ('express-q4',this,'wrong')">A. express.text()</button>
+      <button class="opt-btn" onclick="checkMCQ('express-q4',this,'correct')">B. express.json()</button>
+      <button class="opt-btn" onclick="checkMCQ('express-q4',this,'wrong')">C. express.body()</button>
+      <button class="opt-btn" onclick="checkMCQ('express-q4',this,'wrong')">D. express.parse()</button>
+    </div>
+    <div class="explanation" id="express-q4-exp">
+      <strong>✅ express.json()</strong> — Without this, <code>req.body</code> will be <code>undefined</code> for JSON requests. Add it as: <code>app.use(express.json())</code> before your routes. For HTML form data, use <code>express.urlencoded({extended:true})</code>.
+    </div>
+  </div>
+
+  <!-- Q5 MCQ -->
+  <div class="q-card" id="express-q5">
+    <div class="q-header">
+      <span class="q-num">Q5</span>
+      <span class="q-text">How do you access route parameters in Express?</span>
+    </div>
+    <div class="options">
+      <button class="opt-btn" onclick="checkMCQ('express-q5',this,'wrong')">A. req.query.id</button>
+      <button class="opt-btn" onclick="checkMCQ('express-q5',this,'wrong')">B. req.body.id</button>
+      <button class="opt-btn" onclick="checkMCQ('express-q5',this,'correct')">C. req.params.id</button>
+      <button class="opt-btn" onclick="checkMCQ('express-q5',this,'wrong')">D. req.route.id</button>
+    </div>
+    <div class="explanation" id="express-q5-exp">
+      <strong>✅ req.params.id</strong> — For route <code>/users/:id</code>, the ID is in <code>req.params.id</code>. Remember: <code>req.params</code> = URL segments, <code>req.query</code> = query strings (?key=val), <code>req.body</code> = request body (POST/PUT).
+    </div>
+  </div>
+
+  <!-- Q6 MATCH -->
+  <div class="q-card" id="express-q6">
+    <div class="q-header">
+      <span class="q-num">Q6</span>
+      <span class="q-text">Match the HTTP method with its REST action and typical status code.</span>
+    </div>
+    <div id="match-express-q6">
+      <div class="match-row">
+        <span class="match-term">POST /api/users</span>
+        <select class="match-select" data-answer="Create new resource → 201">
+          <option value="">Choose…</option>
+          <option>Create new resource → 201</option>
+          <option>Read all → 200</option>
+          <option>Update resource → 200</option>
+          <option>Delete → 204</option>
+        </select>
+      </div>
+      <div class="match-row">
+        <span class="match-term">GET /api/users</span>
+        <select class="match-select" data-answer="Read all → 200">
+          <option value="">Choose…</option>
+          <option>Create new resource → 201</option>
+          <option>Read all → 200</option>
+          <option>Update resource → 200</option>
+          <option>Delete → 204</option>
+        </select>
+      </div>
+      <div class="match-row">
+        <span class="match-term">DELETE /api/users/:id</span>
+        <select class="match-select" data-answer="Delete → 204">
+          <option value="">Choose…</option>
+          <option>Create new resource → 201</option>
+          <option>Read all → 200</option>
+          <option>Update resource → 200</option>
+          <option>Delete → 204</option>
+        </select>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-check" onclick="checkMatch('express-q6')">Check</button>
+      <button class="btn btn-reset" onclick="resetMatch('express-q6')">Reset</button>
+    </div>
+    <div class="explanation" id="express-q6-exp">
+      <strong>POST</strong> → 201 Created. <strong>GET</strong> → 200 OK. <strong>DELETE</strong> → 204 No Content (success but nothing to return). PUT/PATCH → 200 OK with updated resource.
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════ MONGODB ══════════════ -->
+<div class="section" id="section-mongodb">
+  <div class="section-title">🍃 MongoDB &amp; Mongoose</div>
+  <div class="section-sub">NoSQL documents, collections, CRUD, Schema, ODM vs ORM.</div>
+
+  <div class="concept-box">
+    <h4>📘 Key Concepts</h4>
+    <ul>
+      <li>MongoDB is a NoSQL <strong>Document</strong> database — stores BSON (Binary JSON).</li>
+      <li>SQL Table = MongoDB <strong>Collection</strong>. SQL Row = MongoDB <strong>Document</strong>.</li>
+      <li><strong>Mongoose</strong> is an ODM (Object Document Mapper). ORM is for SQL/relational databases.</li>
+      <li><span class="trap">⚠ TRAP:</span> <code>findByIdAndUpdate()</code> does NOT return updated doc by default — add <code>{ new: true }</code>.</li>
+      <li><span class="trap">⚠ TRAP:</span> Without <code>$set</code>, the entire document is replaced when updating.</li>
+      <li>MongoDB uses <code>_id</code> as primary key — auto-generated ObjectId if not provided.</li>
+      <li>Default MongoDB port: <strong>27017</strong>.</li>
+    </ul>
+  </div>
+
+  <!-- Q1 MCQ -->
+  <div class="q-card" id="mongo-q1">
+    <div class="q-header">
+      <span class="q-num">Q1</span>
+      <span class="q-text">What is the equivalent of a SQL 'table' in MongoDB?</span>
+    </div>
+    <div class="options">
+      <button class="opt-btn" onclick="checkMCQ('mongo-q1',this,'wrong')">A. Document</button>
+      <button class="opt-btn" onclick="checkMCQ('mongo-q1',this,'wrong')">B. Row</button>
+      <button class="opt-btn" onclick="checkMCQ('mongo-q1',this,'correct')">C. Collection</button>
+      <button class="opt-btn" onclick="checkMCQ('mongo-q1',this,'wrong')">D. Field</button>
+    </div>
+    <div class="explanation" id="mongo-q1-exp">
+      <strong>✅ Collection</strong> — SQL Table → MongoDB Collection. SQL Row → Document. SQL Column → Field. SQL Primary Key → _id (ObjectId). Know this mapping cold for the exam.
+    </div>
+  </div>
+
+  <!-- Q2 MCQ -->
+  <div class="q-card" id="mongo-q2">
+    <div class="q-header">
+      <span class="q-num">Q2</span>
+      <span class="q-trap">⚠ TRAP</span>
+      <span class="q-text">What is the difference between ORM and ODM?</span>
+    </div>
+    <div class="options">
+      <button class="opt-btn" onclick="checkMCQ('mongo-q2',this,'wrong')">A. ORM is for NoSQL, ODM is for SQL</button>
+      <button class="opt-btn" onclick="checkMCQ('mongo-q2',this,'correct')">B. ORM is for SQL/relational DBs; ODM is for document/NoSQL DBs</button>
+      <button class="opt-btn" onclick="checkMCQ('mongo-q2',this,'wrong')">C. They are the same thing</button>
+      <button class="opt-btn" onclick="checkMCQ('mongo-q2',this,'wrong')">D. ODM stands for Object Data Model</button>
+    </div>
+    <div class="explanation" id="mongo-q2-exp">
+      <strong>✅ ORM=SQL, ODM=Document</strong> — ORM (Object Relational Mapper) maps objects to SQL tables (e.g., Sequelize, TypeORM). ODM (Object Document Mapper) maps objects to MongoDB documents (e.g., Mongoose).
+    </div>
+  </div>
+
+  <!-- Q3 MCQ -->
+  <div class="q-card" id="mongo-q3">
+    <div class="q-header">
+      <span class="q-num">Q3</span>
+      <span class="q-text">What is Mongoose?</span>
+    </div>
+    <div class="options">
+      <button class="opt-btn" onclick="checkMCQ('mongo-q3',this,'wrong')">A. A MongoDB hosting service</button>
+      <button class="opt-btn" onclick="checkMCQ('mongo-q3',this,'wrong')">B. A SQL ORM for Node.js</button>
+      <button class="opt-btn" onclick="checkMCQ('mongo-q3',this,'correct')">C. An ODM for MongoDB with schema validation and a cleaner API</button>
+      <button class="opt-btn" onclick="checkMCQ('mongo-q3',this,'wrong')">D. A replacement for Express.js</button>
+    </div>
+    <div class="explanation" id="mongo-q3-exp">
+      <strong>✅ ODM for MongoDB</strong> — Mongoose sits on top of the raw MongoDB driver and adds Schema validation (at the application level), model methods, query chaining, middleware hooks (<code>pre</code>/<code>post</code> save), and a cleaner API.
+    </div>
+  </div>
+
+  <!-- Q4 MCQ -->
+  <div class="q-card" id="mongo-q4">
+    <div class="q-header">
+      <span class="q-num">Q4</span>
+      <span class="q-trap">⚠ TRAP</span>
+      <span class="q-text">Which Mongoose method returns the UPDATED document?</span>
+    </div>
+    <div class="options">
+      <button class="opt-btn" onclick="checkMCQ('mongo-q4',this,'wrong')">A. findByIdAndUpdate(id, data)</button>
+      <button class="opt-btn" onclick="checkMCQ('mongo-q4',this,'correct')">B. findByIdAndUpdate(id, data, { new: true })</button>
+      <button class="opt-btn" onclick="checkMCQ('mongo-q4',this,'wrong')">C. updateOne(id, data)</button>
+      <button class="opt-btn" onclick="checkMCQ('mongo-q4',this,'wrong')">D. findOneAndSave(id, data)</button>
+    </div>
+    <div class="explanation" id="mongo-q4-exp">
+      <strong>✅ findByIdAndUpdate with {new:true}</strong> — By default, findByIdAndUpdate returns the <em>original</em> document (before update). Adding <code>{ new: true }</code> as the third argument makes it return the <em>updated</em> document. This is a classic exam trap!
+    </div>
+  </div>
+
+  <!-- Q5 MCQ -->
+  <div class="q-card" id="mongo-q5">
+    <div class="q-header">
+      <span class="q-num">Q5</span>
+      <span class="q-text">Which MongoDB operator increments a numeric field?</span>
+    </div>
+    <div class="options">
+      <button class="opt-btn" onclick="checkMCQ('mongo-q5',this,'wrong')">A. $add</button>
+      <button class="opt-btn" onclick="checkMCQ('mongo-q5',this,'wrong')">B. $plus</button>
+      <button class="opt-btn" onclick="checkMCQ('mongo-q5',this,'correct')">C. $inc</button>
+      <button class="opt-btn" onclick="checkMCQ('mongo-q5',this,'wrong')">D. $update</button>
+    </div>
+    <div class="explanation" id="mongo-q5-exp">
+      <strong>✅ $inc</strong> — Used as: <code>{ $inc: { visits: 1 } }</code>. Other update operators: <code>$set</code> (set field), <code>$unset</code> (remove field), <code>$push</code> (add to array). Remember: without <code>$set</code>, the entire doc is replaced!
+    </div>
+  </div>
+
+  <!-- Q6 MATCH SQL vs MongoDB -->
+  <div class="q-card" id="mongo-q6">
+    <div class="q-header">
+      <span class="q-num">Q6</span>
+      <span class="q-text">Match the SQL concept with its MongoDB equivalent.</span>
+    </div>
+    <div id="match-mongo-q6">
+      <div class="match-row">
+        <span class="match-term">SQL Table</span>
+        <select class="match-select" data-answer="Collection">
+          <option value="">Choose…</option>
+          <option>Collection</option>
+          <option>Document</option>
+          <option>Field</option>
+          <option>ObjectId</option>
+        </select>
+      </div>
+      <div class="match-row">
+        <span class="match-term">SQL Row</span>
+        <select class="match-select" data-answer="Document">
+          <option value="">Choose…</option>
+          <option>Collection</option>
+          <option>Document</option>
+          <option>Field</option>
+          <option>ObjectId</option>
+        </select>
+      </div>
+      <div class="match-row">
+        <span class="match-term">Primary Key</span>
+        <select class="match-select" data-answer="ObjectId">
+          <option value="">Choose…</option>
+          <option>Collection</option>
+          <option>Document</option>
+          <option>Field</option>
+          <option>ObjectId</option>
+        </select>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-check" onclick="checkMatch('mongo-q6')">Check</button>
+      <button class="btn btn-reset" onclick="resetMatch('mongo-q6')">Reset</button>
+    </div>
+    <div class="explanation" id="mongo-q6-exp">
+      SQL Table → <strong>Collection</strong>. SQL Row → <strong>Document</strong>. SQL Column → Field. Primary Key → <strong>_id (ObjectId)</strong>. MongoDB auto-generates a unique ObjectId for each document's <code>_id</code>.
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════ PROMISES & ASYNC ══════════════ -->
+<div class="section" id="section-promises">
+  <div class="section-title">⏳ Promises &amp; Async/Await</div>
+  <div class="section-sub">Promise methods, .then/.catch, async/await, error handling.</div>
+
+  <div class="concept-box">
+    <h4>📘 Key Concepts</h4>
+    <ul>
+      <li><code>Promise.resolve(val)</code> — creates an already-resolved Promise with value.</li>
+      <li><code>.then()</code> — handles a fulfilled (resolved) Promise; returns a new Promise.</li>
+      <li><code>.catch()</code> — handles rejected Promises (errors); like try/catch for async.</li>
+      <li><code>async function</code> — declares a function that always returns a Promise.</li>
+      <li><code>await</code> — pauses execution inside an async function until the Promise settles.</li>
+      <li><code>Promise.all([])</code> — waits for ALL promises; rejects if any one fails.</li>
+      <li><code>Promise.race([])</code> — resolves/rejects as soon as the FIRST promise settles.</li>
+    </ul>
+  </div>
+
+  <!-- Q1 MATCH -->
+  <div class="q-card" id="promises-q1">
+    <div class="q-header">
+      <span class="q-num">Q1</span>
+      <span class="q-text">Topic: Promises &amp; Async/await — Match the term with its meaning.</span>
+    </div>
+    <div id="match-promises-q1">
+      <div class="match-row">
+        <span class="match-term">Promise.resolve()</span>
+        <select class="match-select" data-answer="Creates an already-resolved Promise">
+          <option value="">Choose…</option>
+          <option>Creates an already-resolved Promise</option>
+          <option>Handles fulfilled Promise result</option>
+          <option>Handles rejected Promise / errors</option>
+          <option>Declares an async function</option>
+          <option>Pauses until Promise settles</option>
+        </select>
+      </div>
+      <div class="match-row">
+        <span class="match-term">.then()</span>
+        <select class="match-select" data-answer="Handles fulfilled Promise result">
+          <option value="">Choose…</option>
+          <option>Creates an already-resolved Promise</option>
+          <option>Handles fulfilled Promise result</option>
+          <option>Handles rejected Promise / errors</option>
+          <option>Declares an async function</option>
+          <option>Pauses until Promise settles</option>
+        </select>
+      </div>
+      <div class="match-row">
+        <span class="match-term">.catch()</span>
+        <select class="match-select" data-answer="Handles rejected Promise / errors">
+          <option value="">Choose…</option>
+          <option>Creates an already-resolved Promise</option>
+          <option>Handles fulfilled Promise result</option>
+          <option>Handles rejected Promise / errors</option>
+          <option>Declares an async function</option>
+          <option>Pauses until Promise settles</option>
+        </select>
+      </div>
+      <div class="match-row">
+        <span class="match-term">async function</span>
+        <select class="match-select" data-answer="Declares an async function">
+          <option value="">Choose…</option>
+          <option>Creates an already-resolved Promise</option>
+          <option>Handles fulfilled Promise result</option>
+          <option>Handles rejected Promise / errors</option>
+          <option>Declares an async function</option>
+          <option>Pauses until Promise settles</option>
+        </select>
+      </div>
+      <div class="match-row">
+        <span class="match-term">await</span>
+        <select class="match-select" data-answer="Pauses until Promise settles">
+          <option value="">Choose…</option>
+          <option>Creates an already-resolved Promise</option>
+          <option>Handles fulfilled Promise result</option>
+          <option>Handles rejected Promise / errors</option>
+          <option>Declares an async function</option>
+          <option>Pauses until Promise settles</option>
+        </select>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-check" onclick="checkMatch('promises-q1')">Check</button>
+      <button class="btn btn-reset" onclick="resetMatch('promises-q1')">Reset</button>
+    </div>
+    <div class="explanation" id="promises-q1-exp">
+      <strong>Promise.resolve()</strong> wraps a value in a resolved Promise. <strong>.then()</strong> chains on success. <strong>.catch()</strong> handles errors. <strong>async</strong> marks a function as asynchronous (always returns Promise). <strong>await</strong> suspends the function until the Promise resolves — can only be used inside async functions.
+    </div>
+  </div>
+
+  <!-- Q2 DRAG DROP: Promise.all -->
+  <div class="q-card dragdrop-q" id="promises-q2">
+    <div class="q-header">
+      <span class="q-num">Q2</span>
+      <span class="q-text">Topic: Promises (Medium) — Complete the code that waits for multiple API calls to finish before proceeding.</span>
+    </div>
+    <div class="dd-code">const [users, posts] = await Promise.<span class="dd-blank" id="dd-promises-q2-0" data-answer="all" ondragover="ddOver(event)" ondrop="ddDrop(event,'promises-q2',0)" onclick="ddClick(this,'promises-q2',0)">　　　</span>([
+  fetch('/api/users').then(r => r.json()),
+  fetch('/api/posts').then(r => r.<span class="dd-blank" id="dd-promises-q2-1" data-answer="json" ondragover="ddOver(event)" ondrop="ddDrop(event,'promises-q2',1)" onclick="ddClick(this,'promises-q2',1)">　　　</span>())
+]);</div>
+    <div class="tokens-row" id="tokens-promises-q2">
+      <div class="token" draggable="true" ondragstart="ddStart(event,'race')" onclick="ddTokenClick(this,'promises-q2','race')">race</div>
+      <div class="token" draggable="true" ondragstart="ddStart(event,'any')" onclick="ddTokenClick(this,'promises-q2','any')">any</div>
+      <div class="token" draggable="true" ondragstart="ddStart(event,'all')" onclick="ddTokenClick(this,'promises-q2','all')">all</div>
+      <div class="token" draggable="true" ondragstart="ddStart(event,'json')" onclick="ddTokenClick(this,'promises-q2','json')">json</div>
+      <div class="token" draggable="true" ondragstart="ddStart(event,'parse')" onclick="ddTokenClick(this,'promises-q2','parse')">parse</div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-check" onclick="checkDD('promises-q2',2)">Check</button>
+      <button class="btn btn-reset" onclick="resetDD('promises-q2',2,['all','json'])">Reset</button>
+    </div>
+    <div class="explanation" id="promises-q2-exp">
+      <strong>✅ all, json</strong> — <code>Promise.all([])</code> takes an array of Promises and waits for ALL to resolve, then returns an array of results. <code>race()</code> returns the first to settle. <code>any()</code> returns the first to fulfill. <code>r.json()</code> parses the JSON response body (not <code>JSON.parse</code>).
+    </div>
+  </div>
+
+  <!-- Q3 MCQ -->
+  <div class="q-card" id="promises-q3">
+    <div class="q-header">
+      <span class="q-num">Q3</span>
+      <span class="q-text">What does Promise.race([]) do?</span>
+    </div>
+    <div class="options">
+      <button class="opt-btn" onclick="checkMCQ('promises-q3',this,'wrong')">A. Waits for all Promises to resolve</button>
+      <button class="opt-btn" onclick="checkMCQ('promises-q3',this,'correct')">B. Resolves/rejects as soon as the first Promise settles</button>
+      <button class="opt-btn" onclick="checkMCQ('promises-q3',this,'wrong')">C. Returns the first fulfilled Promise (ignores rejections)</button>
+      <button class="opt-btn" onclick="checkMCQ('promises-q3',this,'wrong')">D. Runs Promises in sequence</button>
+    </div>
+    <div class="explanation" id="promises-q3-exp">
+      <strong>✅ First to settle (resolve OR reject)</strong> — <code>race()</code> is like a race: first one done wins. Even if it rejects. Compare: <code>all()</code> = all must resolve. <code>any()</code> = first to FULFILL (ignores rejections until all reject). <code>allSettled()</code> = wait for all, regardless of outcome.
+    </div>
+  </div>
+
+  <!-- Q4 MCQ -->
+  <div class="q-card" id="promises-q4">
+    <div class="q-header">
+      <span class="q-num">Q4</span>
+      <span class="q-text">Which keyword is used to pause execution inside an async function?</span>
+    </div>
+    <div class="options">
+      <button class="opt-btn" onclick="checkMCQ('promises-q4',this,'wrong')">A. pause</button>
+      <button class="opt-btn" onclick="checkMCQ('promises-q4',this,'wrong')">B. yield</button>
+      <button class="opt-btn" onclick="checkMCQ('promises-q4',this,'correct')">C. await</button>
+      <button class="opt-btn" onclick="checkMCQ('promises-q4',this,'wrong')">D. defer</button>
+    </div>
+    <div class="explanation" id="promises-q4-exp">
+      <strong>✅ await</strong> — <code>await</code> can only be used inside <code>async</code> functions. It pauses that function's execution until the awaited Promise resolves. Other code continues to run in the meantime (non-blocking). <code>yield</code> is for generators, not Promises.
+    </div>
+  </div>
+
+  <!-- Q5 MCQ -->
+  <div class="q-card" id="promises-q5">
+    <div class="q-header">
+      <span class="q-num">Q5</span>
+      <span class="q-text">How do you handle errors with async/await?</span>
+    </div>
+    <div class="options">
+      <button class="opt-btn" onclick="checkMCQ('promises-q5',this,'wrong')">A. .catch() only</button>
+      <button class="opt-btn" onclick="checkMCQ('promises-q5',this,'correct')">B. try...catch block</button>
+      <button class="opt-btn" onclick="checkMCQ('promises-q5',this,'wrong')">C. .error() callback</button>
+      <button class="opt-btn" onclick="checkMCQ('promises-q5',this,'wrong')">D. onError handler</button>
+    </div>
+    <div class="explanation" id="promises-q5-exp">
+      <strong>✅ try...catch</strong> — With async/await, wrap your awaited calls in <code>try { } catch(err) { }</code>. If the awaited Promise rejects, the error is caught. You can also chain <code>.catch()</code> on the async function call itself, but try/catch is the idiomatic approach.
+    </div>
+  </div>
+
+  <!-- Q6 MCQ -->
+  <div class="q-card" id="promises-q6">
+    <div class="q-header">
+      <span class="q-num">Q6</span>
+      <span class="q-text">What does an async function always return?</span>
+    </div>
+    <div class="options">
+      <button class="opt-btn" onclick="checkMCQ('promises-q6',this,'wrong')">A. undefined</button>
+      <button class="opt-btn" onclick="checkMCQ('promises-q6',this,'wrong')">B. The returned value directly</button>
+      <button class="opt-btn" onclick="checkMCQ('promises-q6',this,'correct')">C. A Promise</button>
+      <button class="opt-btn" onclick="checkMCQ('promises-q6',this,'wrong')">D. A callback function</button>
+    </div>
+    <div class="explanation" id="promises-q6-exp">
+      <strong>✅ A Promise</strong> — Even if you write <code>async function f() { return 42; }</code>, calling <code>f()</code> returns <code>Promise.resolve(42)</code>, not 42 directly. This is what allows <code>await f()</code> to work.
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════ REACT FORMS ══════════════ -->
+<div class="section" id="section-forms">
+  <div class="section-title">📝 React Forms</div>
+  <div class="section-sub">Form submission, event handling, controlled inputs, preventDefault.</div>
+
+  <div class="concept-box">
+    <h4>📘 Key Concepts</h4>
+    <ul>
+      <li><code>e.preventDefault()</code> stops the default browser form submission (page reload).</li>
+      <li>Form submit handler uses <code>onSubmit</code> prop (not onclick, not submit attribute).</li>
+      <li>Controlled inputs: value is controlled by React state via <code>value={state}</code> + <code>onChange</code>.</li>
+      <li>The child calls the callback prop (<code>onSave</code>, <code>onChange</code>) to notify the parent.</li>
+      <li><span class="trap">⚠ TRAP:</span> The event handler receives an event object <code>e</code> — always call <code>e.preventDefault()</code> first.</li>
+    </ul>
+  </div>
+
+  <!-- Q1 DRAG-DROP: form submit -->
+  <div class="q-card dragdrop-q" id="forms-q1">
+    <div class="q-header">
+      <span class="q-num">Q1</span>
+      <span class="q-text">Topic: React Forms — Complete the form submit handler so the page does NOT reload.</span>
+    </div>
+    <div class="dd-code">const handleSubmit = (e) => {
+  e.<span class="dd-blank" id="dd-forms-q1-0" data-answer="preventDefault" ondragover="ddOver(event)" ondrop="ddDrop(event,'forms-q1',0)" onclick="ddClick(this,'forms-q1',0)">　　　　　　　　</span>();
+  // process form...
+};
+
+return &lt;form <span class="dd-blank" id="dd-forms-q1-1" data-answer="onSubmit" ondragover="ddOver(event)" ondrop="ddDrop(event,'forms-q1',1)" onclick="ddClick(this,'forms-q1',1)">　　　　　</span>={handleSubmit}&gt;...&lt;/form&gt;</div>
+    <div class="tokens-row" id="tokens-forms-q1">
+      <div class="token" draggable="true" ondragstart="ddStart(event,'preventDefault')" onclick="ddTokenClick(this,'forms-q1','preventDefault')">preventDefault</div>
+      <div class="token" draggable="true" ondragstart="ddStart(event,'stopPropagation')" onclick="ddTokenClick(this,'forms-q1','stopPropagation')">stopPropagation</div>
+      <div class="token" draggable="true" ondragstart="ddStart(event,'onSubmit')" onclick="ddTokenClick(this,'forms-q1','onSubmit')">onSubmit</div>
+      <div class="token" draggable="true" ondragstart="ddStart(event,'submit')" onclick="ddTokenClick(this,'forms-q1','submit')">submit</div>
+      <div class="token" draggable="true" ondragstart="ddStart(event,'onClick')" onclick="ddTokenClick(this,'forms-q1','onClick')">onClick</div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-check" onclick="checkDD('forms-q1',2)">Check</button>
+      <button class="btn btn-reset" onclick="resetDD('forms-q1',2,['preventDefault','onSubmit'])">Reset</button>
+    </div>
+    <div class="explanation" id="forms-q1-exp">
+      <strong>✅ preventDefault, onSubmit</strong> — <code>e.preventDefault()</code> stops the browser's default form behaviour (which would reload the page). <code>onSubmit</code> is the React event prop for form submission (camelCase, not 'submit' or 'action').
+    </div>
+  </div>
+
+  <!-- Q2 DRAG-DROP: contact form -->
+  <div class="q-card dragdrop-q" id="forms-q2">
+    <div class="q-header">
+      <span class="q-num">Q2</span>
+      <span class="q-text">Scenario: React contact form. When user clicks Submit, page must NOT reload; validate then send data via JS.</span>
+    </div>
+    <div class="dd-code">const handleSubmit = (e) => {
+  e.<span class="dd-blank" id="dd-forms-q2-0" data-answer="preventDefault" ondragover="ddOver(event)" ondrop="ddDrop(event,'forms-q2',0)" onclick="ddClick(this,'forms-q2',0)">　　　　　　　</span>();
+  const isValid = validateForm();
+  if (isValid) submitData();
+};
+
+return &lt;form <span class="dd-blank" id="dd-forms-q2-1" data-answer="onSubmit" ondragover="ddOver(event)" ondrop="ddDrop(event,'forms-q2',1)" onclick="ddClick(this,'forms-q2',1)">　　　　　</span>={handleSubmit}&gt;...&lt;/form&gt;</div>
+    <div class="tokens-row" id="tokens-forms-q2">
+      <div class="token" draggable="true" ondragstart="ddStart(event,'preventDefault')" onclick="ddTokenClick(this,'forms-q2','preventDefault')">preventDefault</div>
+      <div class="token" draggable="true" ondragstart="ddStart(event,'stopDefault')" onclick="ddTokenClick(this,'forms-q2','stopDefault')">stopDefault</div>
+      <div class="token" draggable="true" ondragstart="ddStart(event,'onSubmit')" onclick="ddTokenClick(this,'forms-q2','onSubmit')">onSubmit</div>
+      <div class="token" draggable="true" ondragstart="ddStart(event,'method')" onclick="ddTokenClick(this,'forms-q2','method')">method</div>
+      <div class="token" draggable="true" ondragstart="ddStart(event,'action')" onclick="ddTokenClick(this,'forms-q2','action')">action</div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-check" onclick="checkDD('forms-q2',2)">Check</button>
+      <button class="btn btn-reset" onclick="resetDD('forms-q2',2,['preventDefault','onSubmit'])">Reset</button>
+    </div>
+    <div class="explanation" id="forms-q2-exp">
+      <strong>✅ preventDefault, onSubmit</strong> — Same pattern! The key insight: in React, you ALWAYS use <code>onSubmit</code> (not action/method/submit). The event object <code>e</code> must call <code>preventDefault()</code> to stop the page reload.
+    </div>
+  </div>
+
+  <!-- Q3 MCQ -->
+  <div class="q-card" id="forms-q3">
+    <div class="q-header">
+      <span class="q-num">Q3</span>
+      <span class="q-text">What does e.preventDefault() do in a form submit handler?</span>
+    </div>
+    <div class="options">
+      <button class="opt-btn" onclick="checkMCQ('forms-q3',this,'wrong')">A. Validates the form inputs</button>
+      <button class="opt-btn" onclick="checkMCQ('forms-q3',this,'correct')">B. Prevents the default browser behaviour (page reload)</button>
+      <button class="opt-btn" onclick="checkMCQ('forms-q3',this,'wrong')">C. Stops other event handlers from running</button>
+      <button class="opt-btn" onclick="checkMCQ('forms-q3',this,'wrong')">D. Resets the form fields</button>
+    </div>
+    <div class="explanation" id="forms-q3-exp">
+      <strong>✅ Prevents page reload</strong> — By default, submitting an HTML form sends a GET/POST request and reloads the page. <code>e.preventDefault()</code> cancels this so you can handle the data with JavaScript instead. Note: <code>e.stopPropagation()</code> stops event bubbling — a different thing.
+    </div>
+  </div>
+
+  <!-- Q4 Scenario: Parent state child save -->
+  <div class="q-card dragdrop-q" id="forms-q4">
+    <div class="q-header">
+      <span class="q-num">Q4</span>
+      <span class="q-text">Scenario: Parent owns state; child notifies parent when user clicks "Save". Complete the parent.</span>
+    </div>
+    <div class="dd-code">function Parent() {
+  const [name, setName] = <span class="dd-blank" id="dd-forms-q4-0" data-answer="useState" ondragover="ddOver(event)" ondrop="ddDrop(event,'forms-q4',0)" onclick="ddClick(this,'forms-q4',0)">　　　　</span>('');
+  return &lt;Child value={name} onSave={() => setName(/* from child */)} /&gt;;
+}</div>
+    <div class="tokens-row" id="tokens-forms-q4">
+      <div class="token" draggable="true" ondragstart="ddStart(event,'useState')" onclick="ddTokenClick(this,'forms-q4','useState')">useState</div>
+      <div class="token" draggable="true" ondragstart="ddStart(event,'useEffect')" onclick="ddTokenClick(this,'forms-q4','useEffect')">useEffect</div>
+      <div class="token" draggable="true" ondragstart="ddStart(event,'useRef')" onclick="ddTokenClick(this,'forms-q4','useRef')">useRef</div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-check" onclick="checkDD('forms-q4',1)">Check</button>
+      <button class="btn btn-reset" onclick="resetDD('forms-q4',1,['useState'])">Reset</button>
+    </div>
+    <div class="explanation" id="forms-q4-exp">
+      <strong>✅ useState</strong> — The parent uses useState to own and control the name. It passes the current <code>name</code> as a prop and passes <code>setName</code> (wrapped as <code>onSave</code>) as a callback. When the child calls <code>onSave(newName)</code>, the parent updates its state — this is the "lifting state up" pattern.
+    </div>
+  </div>
+
+  <!-- Q5 MCQ -->
+  <div class="q-card" id="forms-q5">
+    <div class="q-header">
+      <span class="q-num">Q5</span>
+      <span class="q-text">In React, what is a controlled component?</span>
+    </div>
+    <div class="options">
+      <button class="opt-btn" onclick="checkMCQ('forms-q5',this,'wrong')">A. A component that uses useRef to access DOM directly</button>
+      <button class="opt-btn" onclick="checkMCQ('forms-q5',this,'correct')">B. A form element whose value is controlled by React state via value + onChange</button>
+      <button class="opt-btn" onclick="checkMCQ('forms-q5',this,'wrong')">C. A component wrapped by a HOC</button>
+      <button class="opt-btn" onclick="checkMCQ('forms-q5',this,'wrong')">D. A component with no props</button>
+    </div>
+    <div class="explanation" id="forms-q5-exp">
+      <strong>✅ value + onChange controlled by state</strong> — A controlled input has its value driven by React state: <code>&lt;input value={name} onChange={e => setName(e.target.value)} /&gt;</code>. React is the "single source of truth". An uncontrolled input uses a ref to read DOM values instead.
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════ MIXED CHALLENGE ══════════════ -->
+<div class="section" id="section-mixed">
+  <div class="section-title">🎯 Mixed Challenge</div>
+  <div class="section-sub">Cross-topic questions — covers all EAD topics.</div>
+
+  <div class="q-card" id="mixed-q1">
+    <div class="q-header">
+      <span class="q-num">Q1</span>
+      <span class="q-text">Which git command creates a new branch AND switches to it in one step?</span>
+    </div>
+    <div class="options">
+      <button class="opt-btn" onclick="checkMCQ('mixed-q1',this,'wrong')">A. git branch new-feature</button>
+      <button class="opt-btn" onclick="checkMCQ('mixed-q1',this,'correct')">B. git checkout -b new-feature</button>
+      <button class="opt-btn" onclick="checkMCQ('mixed-q1',this,'wrong')">C. git switch new-feature</button>
+      <button class="opt-btn" onclick="checkMCQ('mixed-q1',this,'wrong')">D. git create new-feature</button>
+    </div>
+    <div class="explanation" id="mixed-q1-exp">
+      <strong>✅ git checkout -b</strong> — The <code>-b</code> flag means "create new branch and switch". Equivalent modern syntax: <code>git switch -c new-feature</code>. <code>git branch new-feature</code> creates without switching. <code>git switch new-feature</code> switches to an existing branch.
+    </div>
+  </div>
+
+  <div class="q-card" id="mixed-q2">
+    <div class="q-header">
+      <span class="q-num">Q2</span>
+      <span class="q-text">Node.js is primarily used for?</span>
+    </div>
+    <div class="options">
+      <button class="opt-btn" onclick="checkMCQ('mixed-q2',this,'wrong')">A. CPU-intensive tasks like machine learning</button>
+      <button class="opt-btn" onclick="checkMCQ('mixed-q2',this,'correct')">B. I/O-bound applications like web APIs and real-time apps</button>
+      <button class="opt-btn" onclick="checkMCQ('mixed-q2',this,'wrong')">C. Desktop GUI applications</button>
+      <button class="opt-btn" onclick="checkMCQ('mixed-q2',this,'wrong')">D. Image processing and video encoding</button>
+    </div>
+    <div class="explanation" id="mixed-q2-exp">
+      <strong>✅ I/O-bound apps</strong> — Node's event loop and non-blocking I/O make it ideal for web servers, REST APIs, real-time apps (chat, gaming), microservices. NOT suitable for CPU-heavy tasks (use Python, C++ threads, or Worker threads for those).
+    </div>
+  </div>
+
+  <div class="q-card" id="mixed-q3">
+    <div class="q-header">
+      <span class="q-num">Q3</span>
+      <span class="q-text">How do you access query string parameters in Express? (e.g., /search?q=ali)</span>
+    </div>
+    <div class="options">
+      <button class="opt-btn" onclick="checkMCQ('mixed-q3',this,'wrong')">A. req.params.q</button>
+      <button class="opt-btn" onclick="checkMCQ('mixed-q3',this,'correct')">B. req.query.q</button>
+      <button class="opt-btn" onclick="checkMCQ('mixed-q3',this,'wrong')">C. req.body.q</button>
+      <button class="opt-btn" onclick="checkMCQ('mixed-q3',this,'wrong')">D. req.search.q</button>
+    </div>
+    <div class="explanation" id="mixed-q3-exp">
+      <strong>✅ req.query.q</strong> — Query strings come after the <code>?</code> in the URL. <code>req.query</code> parses them automatically. <code>req.params</code> is for URL segments like <code>:id</code>. <code>req.body</code> is for the request body (POST/PUT with middleware).
+    </div>
+  </div>
+
+  <div class="q-card" id="mixed-q4">
+    <div class="q-header">
+      <span class="q-num">Q4</span>
+      <span class="q-text">What HTTP status code should be returned when a resource is NOT found?</span>
+    </div>
+    <div class="options">
+      <button class="opt-btn" onclick="checkMCQ('mixed-q4',this,'wrong')">A. 200</button>
+      <button class="opt-btn" onclick="checkMCQ('mixed-q4',this,'wrong')">B. 500</button>
+      <button class="opt-btn" onclick="checkMCQ('mixed-q4',this,'correct')">C. 404</button>
+      <button class="opt-btn" onclick="checkMCQ('mixed-q4',this,'wrong')">D. 403</button>
+    </div>
+    <div class="explanation" id="mixed-q4-exp">
+      <strong>✅ 404 Not Found</strong> — Standard status codes: 200=OK, 201=Created, 204=No Content, 301=Moved Permanently, 400=Bad Request, 401=Unauthorized, 403=Forbidden, 404=Not Found, 500=Internal Server Error.
+    </div>
+  </div>
+
+  <div class="q-card" id="mixed-q5">
+    <div class="q-header">
+      <span class="q-num">Q5</span>
+      <span class="q-text">What is the role of package.json in a Node project?</span>
+    </div>
+    <div class="options">
+      <button class="opt-btn" onclick="checkMCQ('mixed-q5',this,'wrong')">A. Stores the application database</button>
+      <button class="opt-btn" onclick="checkMCQ('mixed-q5',this,'correct')">B. Project manifest — lists dependencies, scripts, entry point, and metadata</button>
+      <button class="opt-btn" onclick="checkMCQ('mixed-q5',this,'wrong')">C. Contains the compiled JavaScript output</button>
+      <button class="opt-btn" onclick="checkMCQ('mixed-q5',this,'wrong')">D. Git configuration file</button>
+    </div>
+    <div class="explanation" id="mixed-q5-exp">
+      <strong>✅ Project manifest</strong> — <code>package.json</code> is the heart of a Node project. It lists: <code>dependencies</code> (production), <code>devDependencies</code> (dev-only), <code>scripts</code> (npm start, npm run dev), <code>main</code> (entry point), name, version, etc.
+    </div>
+  </div>
+
+  <div class="q-card" id="mixed-q6">
+    <div class="q-header">
+      <span class="q-num">Q6</span>
+      <span class="q-trap">⚠ TRAP</span>
+      <span class="q-text">Which third-party middleware is used for HTTP request logging in Express?</span>
+    </div>
+    <div class="options">
+      <button class="opt-btn" onclick="checkMCQ('mixed-q6',this,'wrong')">A. winston</button>
+      <button class="opt-btn" onclick="checkMCQ('mixed-q6',this,'correct')">B. morgan</button>
+      <button class="opt-btn" onclick="checkMCQ('mixed-q6',this,'wrong')">C. helmet</button>
+      <button class="opt-btn" onclick="checkMCQ('mixed-q6',this,'wrong')">D. cors</button>
+    </div>
+    <div class="explanation" id="mixed-q6-exp">
+      <strong>✅ morgan</strong> — morgan logs HTTP request details (method, URL, status, response time). Others: <code>cors</code> handles Cross-Origin Resource Sharing. <code>helmet</code> sets security HTTP headers. <code>multer</code> handles file uploads. <code>winston</code> is general-purpose logging (not HTTP-specific).
+    </div>
+  </div>
+
+  <div class="q-card" id="mixed-q7">
+    <div class="q-header">
+      <span class="q-num">Q7</span>
+      <span class="q-text">In MongoDB/Mongoose, which form enctype is required for file uploads?</span>
+    </div>
+    <div class="options">
+      <button class="opt-btn" onclick="checkMCQ('mixed-q7',this,'wrong')">A. application/json</button>
+      <button class="opt-btn" onclick="checkMCQ('mixed-q7',this,'wrong')">B. application/x-www-form-urlencoded</button>
+      <button class="opt-btn" onclick="checkMCQ('mixed-q7',this,'correct')">C. multipart/form-data</button>
+      <button class="opt-btn" onclick="checkMCQ('mixed-q7',this,'wrong')">D. text/plain</button>
+    </div>
+    <div class="explanation" id="mixed-q7-exp">
+      <strong>✅ multipart/form-data</strong> — This enctype is required when your form uploads files. Regular forms use <code>application/x-www-form-urlencoded</code> (default). Multer middleware in Express handles <code>multipart/form-data</code> requests.
+    </div>
+  </div>
+
+  <div class="q-card" id="mixed-q8">
+    <div class="q-header">
+      <span class="q-num">Q8</span>
+      <span class="q-trap">⚠ TRAP</span>
+      <span class="q-text">What does git stash do?</span>
+    </div>
+    <div class="options">
+      <button class="opt-btn" onclick="checkMCQ('mixed-q8',this,'wrong')">A. Permanently deletes uncommitted changes</button>
+      <button class="opt-btn" onclick="checkMCQ('mixed-q8',this,'correct')">B. Temporarily saves uncommitted changes so you can switch branches</button>
+      <button class="opt-btn" onclick="checkMCQ('mixed-q8',this,'wrong')">C. Creates a new commit without a message</button>
+      <button class="opt-btn" onclick="checkMCQ('mixed-q8',this,'wrong')">D. Pushes changes to the remote stash</button>
+    </div>
+    <div class="explanation" id="mixed-q8-exp">
+      <strong>✅ Temporarily saves uncommitted changes</strong> — <code>git stash</code> saves your working directory changes aside so you have a clean state to switch branches. Later: <code>git stash pop</code> restores AND removes from stash list. <code>git stash apply</code> restores but keeps in stash list.
+    </div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<script>
+// ══════════════ STATE ══════════════
+let totalAnswered = 0;
+let totalCorrect = 0;
+let answeredMap = {};
+
+function updateScore(){
+  document.getElementById('globalScore').textContent = totalCorrect + ' / ' + totalAnswered;
+}
+
+// ══════════════ NAVIGATION ══════════════
+function showSection(id){
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('visible'));
+  document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('section-' + id).classList.add('visible');
+  event.target.classList.add('active');
+}
+
+// ══════════════ MCQ ══════════════
+function checkMCQ(qid, btn, result){
+  if(answeredMap[qid]) return;
+  answeredMap[qid] = true;
+  totalAnswered++;
+  const card = document.getElementById(qid);
+  const exp = document.getElementById(qid + '-exp');
+  const btns = card.querySelectorAll('.opt-btn');
+  btns.forEach(b => b.disabled = true);
+  if(result === 'correct'){
+    btn.classList.add('selected-correct');
+    totalCorrect++;
+    card.classList.add('correct-card');
+  } else {
+    btn.classList.add('selected-wrong');
+    card.classList.add('wrong-card');
+    // reveal correct
+    btns.forEach(b => {
+      if(b.onclick.toString().includes("'correct'")) b.classList.add('reveal-correct');
+    });
+  }
+  if(exp) exp.classList.add('show');
+  updateScore();
+}
+
+// ══════════════ DRAG-DROP ══════════════
+let dragVal = '';
+
+function ddStart(e, val){
+  dragVal = val;
+  e.target.classList.add('dragging');
+  setTimeout(()=>e.target.classList.remove('dragging'),0);
+}
+
+function ddOver(e){ e.preventDefault(); e.currentTarget.classList.add('dragover'); }
+
+function ddDrop(e, qid, idx){
+  e.preventDefault();
+  e.currentTarget.classList.remove('dragover');
+  if(answeredMap['dd-' + qid]) return;
+  const blank = document.getElementById('dd-' + qid + '-' + idx);
+  if(blank){
+    blank.textContent = dragVal;
+    blank.classList.add('filled');
+    blank.dataset.filled = dragVal;
+    // mark token used
+    markTokenUsed(qid, dragVal);
+  }
+}
+
+function ddClick(blank, qid, idx){
+  // click to clear
+  if(blank.classList.contains('filled') && !answeredMap['dd-' + qid]){
+    const val = blank.dataset.filled;
+    blank.textContent = '　　　';
+    blank.classList.remove('filled','correct-blank','wrong-blank');
+    blank.dataset.filled = '';
+    unmarkToken(qid, val);
+  }
+}
+
+function ddTokenClick(token, qid, val){
+  // find first empty blank
+  if(token.classList.contains('used')) return;
+  if(answeredMap['dd-' + qid]) return;
+  let placed = false;
+  let i = 0;
+  while(true){
+    const blank = document.getElementById('dd-' + qid + '-' + i);
+    if(!blank) break;
+    if(!blank.dataset.filled || blank.dataset.filled === ''){
+      blank.textContent = val;
+      blank.classList.add('filled');
+      blank.dataset.filled = val;
+      markTokenUsed(qid, val);
+      placed = true;
+      break;
+    }
+    i++;
+  }
+}
+
+function markTokenUsed(qid, val){
+  const container = document.getElementById('tokens-' + qid);
+  if(!container) return;
+  for(const tok of container.children){
+    if(tok.textContent === val && !tok.classList.contains('used')){
+      tok.classList.add('used');
+      break;
+    }
+  }
+}
+
+function unmarkToken(qid, val){
+  const container = document.getElementById('tokens-' + qid);
+  if(!container) return;
+  for(const tok of container.children){
+    if(tok.textContent === val && tok.classList.contains('used')){
+      tok.classList.remove('used');
+      break;
+    }
+  }
+}
+
+function checkDD(qid, count, answersOverride){
+  if(answeredMap['dd-' + qid]) return;
+  const answers = answersOverride; // not used here
+  let allFilled = true;
+  for(let i=0;i<count;i++){
+    const blank = document.getElementById('dd-' + qid + '-' + i);
+    if(!blank || !blank.dataset.filled) { allFilled = false; }
+  }
+  if(!allFilled){ alert('Please fill in all blanks first!'); return; }
+
+  answeredMap['dd-' + qid] = true;
+  totalAnswered++;
+  let correct = true;
+  for(let i=0;i<count;i++){
+    const blank = document.getElementById('dd-' + qid + '-' + i);
+    const expected = blank.dataset.answer;
+    const filled = blank.dataset.filled;
+    if(filled === expected){
+      blank.classList.add('correct-blank');
+    } else {
+      blank.classList.remove('filled');
+      blank.classList.add('wrong-blank');
+      blank.textContent = blank.dataset.answer + ' ✓';
+      correct = false;
+    }
+  }
+  if(correct) totalCorrect++;
+  const exp = document.getElementById(qid + '-exp');
+  if(exp) exp.classList.add('show');
+  updateScore();
+}
+
+function resetDD(qid, count, correctAnswers){
+  if(answeredMap['dd-' + qid]){
+    delete answeredMap['dd-' + qid];
+    totalAnswered--;
+    updateScore();
+  }
+  for(let i=0;i<count;i++){
+    const blank = document.getElementById('dd-' + qid + '-' + i);
+    if(blank){
+      blank.textContent = '　　　';
+      blank.classList.remove('filled','correct-blank','wrong-blank');
+      blank.dataset.filled = '';
+    }
+  }
+  const container = document.getElementById('tokens-' + qid);
+  if(container) container.querySelectorAll('.token').forEach(t=>t.classList.remove('used'));
+  const exp = document.getElementById(qid + '-exp');
+  if(exp) exp.classList.remove('show');
+}
+
+// ══════════════ MATCH ══════════════
+function checkMatch(qid){
+  if(answeredMap['match-' + qid]) return;
+  const container = document.getElementById('match-' + qid);
+  const selects = container.querySelectorAll('.match-select');
+  let allFilled = true;
+  selects.forEach(s => { if(!s.value) allFilled = false; });
+  if(!allFilled){ alert('Please select all answers!'); return; }
+
+  answeredMap['match-' + qid] = true;
+  totalAnswered++;
+  let allCorrect = true;
+  selects.forEach(s => {
+    s.disabled = true;
+    if(s.value === s.dataset.answer){
+      s.classList.add('correct-sel');
+    } else {
+      s.classList.add('wrong-sel');
+      allCorrect = false;
+    }
+  });
+  if(allCorrect) totalCorrect++;
+  const exp = document.getElementById(qid + '-exp');
+  if(exp) exp.classList.add('show');
+  updateScore();
+}
+
+function resetMatch(qid){
+  if(answeredMap['match-' + qid]){
+    delete answeredMap['match-' + qid];
+    totalAnswered--;
+    updateScore();
+  }
+  const container = document.getElementById('match-' + qid);
+  container.querySelectorAll('.match-select').forEach(s => {
+    s.value = '';
+    s.disabled = false;
+    s.classList.remove('correct-sel','wrong-sel');
+  });
+  const exp = document.getElementById(qid + '-exp');
+  if(exp) exp.classList.remove('show');
+}
+
+// ══════════════ FILL BLANK ══════════════
+function checkFill(qid, answer){
+  if(answeredMap['fill-' + qid]) return;
+  const input = document.getElementById('fill-' + qid);
+  const val = input.value.trim().toLowerCase();
+  answeredMap['fill-' + qid] = true;
+  totalAnswered++;
+  if(val === answer.toLowerCase()){
+    input.classList.add('correct-in');
+    totalCorrect++;
+  } else {
+    input.classList.add('wrong-in');
+    input.value = answer;
+  }
+  input.disabled = true;
+  const exp = document.getElementById(qid + '-exp');
+  if(exp) exp.classList.add('show');
+  updateScore();
+}
+
+function resetFill(qid){
+  if(answeredMap['fill-' + qid]){
+    delete answeredMap['fill-' + qid];
+    totalAnswered--;
+    updateScore();
+  }
+  const input = document.getElementById('fill-' + qid);
+  input.value = '';
+  input.disabled = false;
+  input.classList.remove('correct-in','wrong-in');
+  const exp = document.getElementById(qid + '-exp');
+  if(exp) exp.classList.remove('show');
+}
+</script>
+</body>
+</html>
